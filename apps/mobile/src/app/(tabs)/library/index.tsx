@@ -4,13 +4,17 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { PlaylistCard } from "@/components/library/playlist-card";
 import { VaultButton, VaultHeading, VaultSubheading } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
-import { useDownloadStore } from "@/stores/download-store";
+import { useFavorites } from "@/hooks/use-favorites";
+import { useHistory } from "@/hooks/use-history";
 import { usePlaylists } from "@/hooks/use-playlists";
 import { ApiClientError } from "@/lib/api-client";
+import { useDownloadStore } from "@/stores/download-store";
 
 export default function LibraryScreen() {
   const router = useRouter();
   const { data, error, isLoading, refetch, isRefetching } = usePlaylists();
+  const { data: favorites } = useFavorites();
+  const { data: history } = useHistory(50);
   const downloadCount = useDownloadStore((state) => state.records.length);
 
   const errorMessage =
@@ -24,9 +28,41 @@ export default function LibraryScreen() {
     <Screen className="pt-4" padded={false}>
       <View className="px-6">
         <VaultHeading>Your Library</VaultHeading>
-        <VaultSubheading>Playlists and offline downloads.</VaultSubheading>
+        <VaultSubheading>Playlists, favorites, and offline downloads.</VaultSubheading>
 
         <View className="mt-6 gap-3">
+          <Pressable
+            accessibilityRole="button"
+            className="flex-row items-center justify-between rounded-vault-lg bg-vault-surface-elevated px-4 py-4"
+            onPress={() => router.push("/(tabs)/library/favorites")}
+          >
+            <View>
+              <Text className="font-inter-semibold text-base text-vault-text">
+                Favorites
+              </Text>
+              <Text className="mt-1 font-inter text-sm text-vault-muted">
+                {favorites?.length ?? 0} saved tracks
+              </Text>
+            </View>
+            <Text className="font-inter text-sm text-vault-muted">›</Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            className="flex-row items-center justify-between rounded-vault-lg bg-vault-surface-elevated px-4 py-4"
+            onPress={() => router.push("/(tabs)/library/history")}
+          >
+            <View>
+              <Text className="font-inter-semibold text-base text-vault-text">
+                History
+              </Text>
+              <Text className="mt-1 font-inter text-sm text-vault-muted">
+                {history?.length ?? 0} recently played
+              </Text>
+            </View>
+            <Text className="font-inter text-sm text-vault-muted">›</Text>
+          </Pressable>
+
           <Pressable
             accessibilityRole="button"
             className="flex-row items-center justify-between rounded-vault-lg bg-vault-surface-elevated px-4 py-4"

@@ -16,8 +16,8 @@ The first usable version of VibeVault includes **all** of the following:
 - [ ] Spotify playlist import
 - [ ] Device downloads
 - [ ] Offline playback
-- [ ] Favorites
-- [ ] Playback history
+- [x] Favorites
+- [x] Playback history
 
 Quality and architecture correctness take priority over speed.
 
@@ -313,17 +313,17 @@ feat(mobile): add device downloads and offline playback
 
 ---
 
-## M12 — Library Features
+## M12 — Library Features ✅
 
 **Goal:** Favorites and playback history.
 
 ### Tasks
-- [ ] `GET/POST/DELETE /v1/library/favorites`
-- [ ] `GET/POST /v1/library/history`
-- [ ] Favorites screen
-- [ ] History screen
-- [ ] Heart toggle on player and search results
-- [ ] Auto-record history on track play
+- [x] `GET/POST/DELETE /v1/library/favorites`
+- [x] `GET/POST /v1/library/history`
+- [x] Favorites screen
+- [x] History screen
+- [x] Heart toggle on player and search results
+- [x] Auto-record history on track play
 
 ### Done when
 - Favorites persist across sessions

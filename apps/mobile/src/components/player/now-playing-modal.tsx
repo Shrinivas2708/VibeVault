@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FavoriteButton } from "@/components/library/favorite-button";
 import { usePlaybackControls } from "@/hooks/use-playback-controls";
 import { formatArtists } from "@/lib/track-format";
 import { usePlayerUiStore } from "@/stores/player-ui-store";
@@ -95,12 +96,15 @@ export function NowPlayingModal() {
                 >
                   {currentTrack.title}
                 </Text>
-                <Text
-                  className="text-center font-inter text-base text-vault-muted"
-                  numberOfLines={1}
-                >
-                  {formatArtists(currentTrack)}
-                </Text>
+                <View className="flex-row items-center justify-center gap-2">
+                  <Text
+                    className="text-center font-inter text-base text-vault-muted"
+                    numberOfLines={1}
+                  >
+                    {formatArtists(currentTrack)}
+                  </Text>
+                  <FavoriteButton size={20} track={currentTrack} />
+                </View>
               </View>
             </View>
 

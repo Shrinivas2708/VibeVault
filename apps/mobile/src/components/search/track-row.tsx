@@ -5,6 +5,8 @@ import * as Haptics from "expo-haptics";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { ProviderBadge } from "./provider-badge";
 import { DownloadButton } from "@/components/downloads/download-button";
+import { FavoriteButton } from "@/components/library/favorite-button";
+import { searchResultToTrack } from "@/stores/player-store";
 
 interface TrackRowProps {
   result: SearchResult;
@@ -56,6 +58,7 @@ export function TrackRow({
       </View>
 
       <View className="min-w-[44px] items-end flex-row">
+        <FavoriteButton track={searchResultToTrack(result)} />
         <DownloadButton track={result} />
         {isResolving ? (
           <ActivityIndicator color="#1ed760" size="small" />

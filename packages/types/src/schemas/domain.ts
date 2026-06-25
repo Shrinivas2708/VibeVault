@@ -195,3 +195,22 @@ export const HistoryEntrySchema = z.object({
 });
 
 export type HistoryEntry = z.infer<typeof HistoryEntrySchema>;
+
+export const AddFavoriteRequestSchema = z.object({
+  track: TrackMetadataSchema,
+});
+
+export type AddFavoriteRequest = z.infer<typeof AddFavoriteRequestSchema>;
+
+export const RecordHistoryRequestSchema = z.object({
+  track: TrackMetadataSchema,
+  durationPlayedMs: z.number().int().nonnegative().optional(),
+});
+
+export type RecordHistoryRequest = z.infer<typeof RecordHistoryRequestSchema>;
+
+export const HistoryQuerySchema = z.object({
+  limit: z.coerce.number().int().positive().max(100).default(50),
+});
+
+export type HistoryQuery = z.infer<typeof HistoryQuerySchema>;

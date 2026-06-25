@@ -386,6 +386,92 @@ Full playlist with `tracks[]` (`TrackMetadata` per track).
 
 ---
 
+## Library (Favorites & History)
+
+All routes require authentication. Favorites and history are stored per user in MongoDB.
+
+### `GET /v1/library/favorites`
+
+List the user's favorited tracks (newest first).
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "...",
+      "userId": "...",
+      "track": { "ref": { "providerId": "youtube", "externalId": "..." }, "title": "...", "artists": [{ "name": "..." }] },
+      "createdAt": "2025-06-25T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### `POST /v1/library/favorites`
+
+Add a track to favorites. Idempotent per `providerId` + `externalId`.
+
+**Body:**
+
+```json
+{
+  "track": { "ref": { "providerId": "youtube", "externalId": "dQw4w9WgXcQ" }, "title": "...", "artists": [{ "name": "..." }] }
+}
+```
+
+**Response:** `201` with `Favorite`.
+
+---
+
+### `DELETE /v1/library/favorites/:providerId/:externalId`
+
+Remove a favorite. Returns `{ "success": true }`.
+
+---
+
+### `GET /v1/library/history?limit=50`
+
+Recently played tracks (deduped by track, newest play first). `limit` max 100.
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "...",
+      "userId": "...",
+      "track": { "ref": { "providerId": "jiosaavn", "externalId": "..." }, "title": "...", "artists": [{ "name": "..." }] },
+      "playedAt": "2025-06-25T12:30:00.000Z",
+      "durationPlayedMs": 45000
+    }
+  ]
+}
+```
+
+---
+
+### `POST /v1/library/history`
+
+Record a play event (mobile calls this after successful playback start).
+
+**Body:**
+
+```json
+{
+  "track": { "ref": { "providerId": "youtube", "externalId": "..." }, "title": "...", "artists": [{ "name": "..." }] },
+  "durationPlayedMs": 30000
+}
+```
+
+**Response:** `201` with `HistoryEntry`.
+
+---
+
 ## Internal Routes (Development Only)
 
 Available when `NODE_ENV !== production`. **No authentication required.**
@@ -402,18 +488,6 @@ Use for testing individual providers in isolation.
 | `POST` | `/v1/internal/providers/:id/playlists/import` | Playlist import |
 
 `:id` is `youtube`, `jiosaavn`, or `spotify`.
-
----
-
-## Planned Endpoints (Not Yet Implemented)
-
-| Method | Path | Milestone |
-|--------|------|-----------|
-| `POST` | `/v1/playlists/import` | M10 |
-| `GET/POST/DELETE` | `/v1/library/favorites` | M12 |
-| `GET/POST` | `/v1/library/history` | M12 |
-
-See [ROADMAP.md](./ROADMAP.md).
 
 ---
 

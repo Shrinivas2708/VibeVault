@@ -2,7 +2,7 @@
 
 > **Read this first in every new session.** Living handoff document — update after every milestone.
 
-**Last updated:** 2025-06-25 · **Current milestone:** M11 complete → **Next: M12 (Library Features)**
+**Last updated:** 2025-06-25 · **Current milestone:** M12 complete → **Next: M13 (Polish & Hardening)**
 
 ---
 
@@ -180,6 +180,27 @@ apps/mobile/
 - Download button on Search + playlist tracks (YouTube/JioSaavn only)
 - Stream expiry refresh skipped for local playback
 
+### M12 — Library Features ✅
+- `GET/POST/DELETE /v1/library/favorites` — per-user favorites in MongoDB
+- `GET/POST /v1/library/history` — playback history (deduped by track, newest first)
+- Mobile: Favorites + History screens under Library tab
+- Heart toggle on search results + Now Playing modal
+- Auto-record history on successful play (`use-play-track`)
+- Test script: `scripts/test-library.ps1`
+
+**Library paths:**
+```
+apps/api/src/
+  routes/library.ts
+  services/library-service.ts
+  repositories/library-repository.ts
+apps/mobile/src/
+  lib/library-api.ts
+  hooks/use-favorites.ts, use-history.ts
+  components/library/favorite-button.tsx, library-track-row.tsx
+  app/(tabs)/library/favorites.tsx, history.tsx
+```
+
 ---
 
 ## Package Dependency Rules
@@ -281,5 +302,5 @@ bun run dev --filter=@vibevault/mobile
 ## Suggested Next Commit
 
 ```
-feat(mobile): add device downloads and offline playback
+feat(library): add favorites and playback history
 ```

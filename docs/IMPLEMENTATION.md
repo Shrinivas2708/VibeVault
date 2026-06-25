@@ -19,9 +19,10 @@
 | M9 Player UI | ✅ | Mini bar + Now Playing modal |
 | M10 Playlist import | ✅ | Spotify URL import + library |
 | M11 Downloads | ✅ | Device downloads + offline playback |
-| M12 Library features | ⏳ | Favorites + history — **next** |
+| M12 Library features | ✅ | Favorites + playback history |
+| M13 Polish | ⏳ | Skeletons, error UX, refresh — **next** |
 
-**Downloads and offline playback are live (M11).** Favorites/history is M12.
+**Favorites and playback history are live (M12).** Polish/hardening is M13.
 
 ---
 
@@ -203,7 +204,7 @@ src/
 └── providers/app-providers.tsx
 ```
 
-**Not yet implemented:** Favorites/history (M12)
+**Not yet implemented:** Polish/hardening (M13) — skeleton loaders, error toasts, pull-to-refresh
 
 Stack:
 
