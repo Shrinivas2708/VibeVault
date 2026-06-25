@@ -323,6 +323,69 @@ Spotify returns `501` — downloads not supported.
 
 ---
 
+## Playlists (User Library)
+
+All routes require authentication.
+
+### `POST /v1/playlists/import`
+
+Import a **public Spotify playlist** URL into the user's library.
+
+**Body:**
+
+```json
+{
+  "url": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
+}
+```
+
+**Response:** `201` with full `SavedPlaylist` (summary + `tracks[]`).
+
+Re-importing the same URL updates tracks in place.
+
+**Errors:**
+
+- `400` — not a Spotify playlist URL
+- `502/503` — Spotify scraper unavailable
+
+---
+
+### `GET /v1/playlists`
+
+List imported playlists for the authenticated user (newest first).
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "...",
+      "userId": "...",
+      "name": "Today's Top Hits",
+      "trackCount": 50,
+      "sourceUrl": "https://open.spotify.com/playlist/...",
+      "sourceProviderId": "spotify",
+      "createdAt": "2025-06-25T12:00:00.000Z",
+      "updatedAt": "2025-06-25T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### `GET /v1/playlists/:playlistId`
+
+Full playlist with `tracks[]` (`TrackMetadata` per track).
+
+**Notes:**
+
+- Tracks are Spotify metadata; playback uses stream resolve on the track's `ref` (typically fails for `spotify` — cross-provider matching is future work)
+- User can only access their own playlists
+
+---
+
 ## Internal Routes (Development Only)
 
 Available when `NODE_ENV !== production`. **No authentication required.**

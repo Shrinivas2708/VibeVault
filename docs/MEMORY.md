@@ -2,7 +2,7 @@
 
 > **Read this first in every new session.** Living handoff document — update after every milestone.
 
-**Last updated:** 2025-06-25 · **Current milestone:** M9 complete → **Next: M10 (Playlist Import)**
+**Last updated:** 2025-06-25 · **Current milestone:** M10 complete → **Next: M11 (Downloads & Offline)**
 
 ---
 
@@ -164,13 +164,13 @@ apps/mobile/
 - Haptics on play/pause/skip/seek
 - `expo-blur`, `react-native-gesture-handler`
 
-**Player UI paths:**
-```
-apps/mobile/src/components/player/
-  mini-player.tsx, now-playing-modal.tsx, queue-sheet.tsx
-  progress-bar.tsx, playback-buttons.tsx, player-chrome.tsx
-  tab-bar-with-player.tsx
-```
+### M10 — Playlist Import ✅
+- `POST /v1/playlists/import` — Spotify URL → imported tracks saved to MongoDB
+- `GET /v1/playlists`, `GET /v1/playlists/:id` — user library
+- Spotify adapter `importPlaylist` (existing) wired through playlist service
+- Mobile: Library tab with import flow, playlist list, detail screen with playable tracks
+- Re-import same URL updates tracks (upsert by `userId` + `sourceUrl`)
+- Test script: `scripts/test-playlists.ps1` (set `SPOTIFY_PLAYLIST_URL`)
 
 ---
 
@@ -273,5 +273,5 @@ bun run dev --filter=@vibevault/mobile
 ## Suggested Next Commit
 
 ```
-feat(mobile): add now playing UI with animations and queue sheet
+feat(playlists): add spotify playlist import
 ```

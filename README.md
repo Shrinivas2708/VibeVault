@@ -51,7 +51,7 @@ bun run dev --filter=@vibevault/mobile
 | Extractor | internal :8001 | Python yt-dlp service |
 | Spotify | internal :8003 | Self-hosted SpotifyScraper service |
 | JioSaavn | internal :3000 | Self-hosted jiosaavn-api |
-| MongoDB | localhost:27017 | Database |
+| MongoDB | localhost:27017 | Database (`users`, `refreshSessions`, `playlists`) |
 
 ## Monorepo
 
@@ -64,4 +64,4 @@ packages/       Shared types, config, UI tokens, provider contracts
 
 ## Status
 
-**Milestone 5 complete** — unified search and stream resolution. Next: M6 (Mobile Shell).
+**Milestone 10 complete** — Spotify playlist import and library UI. Next: M11 (Downloads & Offline).

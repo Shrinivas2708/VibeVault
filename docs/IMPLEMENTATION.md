@@ -17,9 +17,10 @@
 | M7 Search UI | ✅ | Unified search screen |
 | M8 Playback engine | ✅ | react-native-track-player |
 | M9 Player UI | ✅ | Mini bar + Now Playing modal |
-| M10 Playlist import | ⏳ | Spotify URL import — **next** |
+| M10 Playlist import | ✅ | Spotify URL import + library |
+| M11 Downloads | ⏳ | Offline playback — **next** |
 
-**Player UI is live (M9).** Mini-player and full Now Playing screen with queue sheet.
+**Playlist import is live (M10).** Spotify playlists save to per-user library in MongoDB.
 
 ---
 
@@ -201,7 +202,7 @@ src/
 └── providers/app-providers.tsx
 ```
 
-**Not yet implemented:** Playlist import (M10), downloads (M11), library persistence (M12)
+**Not yet implemented:** Downloads (M11), full library persistence beyond playlists (M12)
 
 Stack:
 

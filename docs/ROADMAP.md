@@ -274,11 +274,11 @@ feat(mobile): add now playing UI with animations and queue sheet
 **Goal:** Import Spotify playlists by URL.
 
 ### Tasks
-- [ ] `POST /v1/playlists/import` endpoint
-- [ ] Spotify adapter playlist resolution
-- [ ] Mobile: paste URL flow
-- [ ] Imported playlist saved to user library in MongoDB
-- [ ] Playlist detail screen
+- [x] `POST /v1/playlists/import` endpoint
+- [x] Spotify adapter playlist resolution
+- [x] Mobile: paste URL flow
+- [x] Imported playlist saved to user library in MongoDB
+- [x] Playlist detail screen
 
 ### Done when
 - User pastes Spotify playlist URL → tracks appear in library

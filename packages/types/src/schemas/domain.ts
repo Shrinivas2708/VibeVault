@@ -140,6 +140,27 @@ export const ImportPlaylistRequestSchema = z.object({
 
 export type ImportPlaylistRequest = z.infer<typeof ImportPlaylistRequestSchema>;
 
+export const SavedPlaylistSummarySchema = z.object({
+  id: z.string().min(1),
+  userId: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  artworkUrl: z.string().url().optional(),
+  trackCount: z.number().int().nonnegative(),
+  sourceUrl: z.string().url(),
+  sourceProviderId: ProviderIdSchema,
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export type SavedPlaylistSummary = z.infer<typeof SavedPlaylistSummarySchema>;
+
+export const SavedPlaylistSchema = SavedPlaylistSummarySchema.extend({
+  tracks: z.array(TrackMetadataSchema),
+});
+
+export type SavedPlaylist = z.infer<typeof SavedPlaylistSchema>;
+
 export const ResolveStreamRequestSchema = z.object({
   trackRef: TrackRefSchema,
   options: StreamOptionsSchema.optional(),

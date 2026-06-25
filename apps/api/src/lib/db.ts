@@ -42,4 +42,10 @@ async function ensureIndexes(database: Db): Promise<void> {
   await database
     .collection("refreshSessions")
     .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+  await database
+    .collection("playlists")
+    .createIndex({ userId: 1, updatedAt: -1 });
+  await database
+    .collection("playlists")
+    .createIndex({ userId: 1, sourceUrl: 1 }, { unique: true });
 }
