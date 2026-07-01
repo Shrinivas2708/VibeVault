@@ -12,6 +12,28 @@ import type {
   TrackRef,
 } from "@vibevault/types";
 import { AppError } from "../lib/errors";
+import { signStreamToken } from "../lib/stream-token";
+
+async function toProxiedManifestIfNeeded(
+  manifest: StreamManifest,
+): Promise<StreamManifest> {
+  if (manifest.trackRef.providerId !== "youtube") {
+    return manifest;
+  }
+
+  const token = await signStreamToken({
+    upstreamUrl: manifest.url,
+    upstreamHeaders: manifest.headers,
+    mimeType: manifest.mimeType,
+  });
+
+  return {
+    ...manifest,
+    deliveryMode: "proxied",
+    url: `/v1/stream/media?token=${encodeURIComponent(token)}`,
+    headers: undefined,
+  };
+}
 
 export async function getTrackMetadata(
   providerId: TrackRef["providerId"],
@@ -28,7 +50,8 @@ export async function resolveStream(
   const provider = providerRegistry.getOrThrow(trackRef.providerId);
 
   try {
-    return await provider.resolveStream(trackRef, options);
+    const manifest = await provider.resolveStream(trackRef, options);
+    return toProxiedManifestIfNeeded(manifest);
   } catch (error) {
     if (error instanceof ProviderNotSupportedError) {
       throw new AppError(

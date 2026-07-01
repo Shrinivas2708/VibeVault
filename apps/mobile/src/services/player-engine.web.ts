@@ -2,6 +2,7 @@ import type { SearchResult, TrackMetadata } from "@vibevault/types";
 import { isStreamExpired } from "@vibevault/utils";
 import { manifestCache } from "@/lib/manifest-cache";
 import { musicApi } from "@/lib/music-api";
+import { resolvePlaybackUrl } from "@/lib/playback-url";
 import {
   searchResultToTrack,
   usePlayerStore,
@@ -108,7 +109,7 @@ export const playerEngine = {
     const position = usePlayerStore.getState().position;
     const manifest = await resolveStreamManifest(currentTrack);
     usePlayerStore.setState({ streamManifest: manifest });
-    webAudioPlayer.load(manifest.url);
+    webAudioPlayer.load(resolvePlaybackUrl(manifest));
     webAudioPlayer.seek(position);
     await webAudioPlayer.play();
   },

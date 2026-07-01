@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { resolvePlaybackUrl } from "@/lib/playback-url";
 import { playerEngine } from "@/services/player-engine";
 import { webAudioPlayer } from "@/services/web-audio-player";
 import { usePlayerStore } from "@/stores/player-store";
@@ -26,7 +27,7 @@ export function PlayerSync() {
 
   useEffect(() => {
     if (!streamManifest?.url) return;
-    webAudioPlayer.load(streamManifest.url);
+    webAudioPlayer.load(resolvePlaybackUrl(streamManifest));
   }, [streamManifest?.url]);
 
   useEffect(() => {

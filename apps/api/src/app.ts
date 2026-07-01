@@ -11,6 +11,7 @@ import { internalRoutes } from "./routes/internal";
 import { libraryRoutes } from "./routes/library";
 import { musicRoutes } from "./routes/music";
 import { playlistRoutes } from "./routes/playlists";
+import { streamMediaRoutes } from "./routes/stream-media";
 import type { AppEnv } from "./types";
 
 export function createApp() {
@@ -22,6 +23,7 @@ export function createApp() {
 
   app.route("/", healthRoutes);
   app.route("/v1/auth", authRoutes);
+  app.route("/v1", streamMediaRoutes);
   app.route("/v1", musicRoutes);
   app.route("/v1", playlistRoutes);
   app.route("/v1", libraryRoutes);

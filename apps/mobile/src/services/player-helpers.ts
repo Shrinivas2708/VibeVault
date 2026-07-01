@@ -1,5 +1,6 @@
 import type { StreamManifest, TrackMetadata } from "@vibevault/types";
 import type { AddTrack } from "react-native-track-player";
+import { resolvePlaybackUrl } from "@/lib/playback-url";
 import { manifestCache, manifestCacheKey } from "@/lib/manifest-cache";
 
 export function trackKey(track: TrackMetadata) {
@@ -14,9 +15,14 @@ export function toPlayerTrack(
   track: TrackMetadata,
   source: PlaybackSource,
 ): AddTrack {
-  const url = source.kind === "local" ? source.fileUri : source.manifest.url;
+  const url =
+    source.kind === "local"
+      ? source.fileUri
+      : resolvePlaybackUrl(source.manifest);
   const headers =
-    source.kind === "stream" ? source.manifest.headers : undefined;
+    source.kind === "stream" && source.manifest.deliveryMode === "direct"
+      ? source.manifest.headers
+      : undefined;
   const contentType =
     source.kind === "stream" ? source.manifest.mimeType : undefined;
 
