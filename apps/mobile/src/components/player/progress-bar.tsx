@@ -93,15 +93,20 @@ export function ProgressBar({
           className={`justify-center ${large ? "h-6" : "h-3"}`}
           onLayout={onLayout}
         >
-          <View className={`rounded-vault-pill bg-vault-border ${large ? "h-1.5" : "h-1"}`}>
+          <View className={`rounded-vault-pill bg-vault-surface-elevated ${large ? "h-1.5" : "h-1"}`}>
             <View
-              className="h-full rounded-vault-pill bg-vault-text"
-              style={{ width: `${ratio * 100}%` }}
+              className="h-full rounded-vault-pill bg-vault-accent"
+              style={{
+                width: `${ratio * 100}%`,
+                shadowColor: "#1ed760",
+                shadowOpacity: 0.45,
+                shadowRadius: 6,
+              }}
             />
           </View>
           {large ? (
             <View
-              className="absolute h-3 w-3 -translate-x-1.5 rounded-full bg-vault-text"
+              className="absolute h-3.5 w-3.5 -translate-x-1.5 rounded-full border-2 border-vault-background bg-vault-accent"
               style={{ left: `${ratio * 100}%` }}
             />
           ) : null}

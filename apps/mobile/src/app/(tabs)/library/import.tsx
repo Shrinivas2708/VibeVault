@@ -15,10 +15,24 @@ import { playlistApi } from "@/lib/playlist-api";
 const importSchema = ImportPlaylistRequestSchema;
 type ImportFormValues = z.infer<typeof importSchema>;
 
+const EXAMPLES = [
+  {
+    label: "Spotify",
+    placeholder: "https://open.spotify.com/playlist/...",
+    tint: "#1db954",
+  },
+  {
+    label: "YouTube",
+    placeholder: "https://www.youtube.com/playlist?list=...",
+    tint: "#ff4b4b",
+  },
+] as const;
+
 export default function ImportPlaylistScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeExample, setActiveExample] = useState<0 | 1>(0);
 
   const {
     control,
@@ -30,7 +44,7 @@ export default function ImportPlaylistScreen() {
   });
 
   const importMutation = useMutation({
-    mutationFn: (url: string) => playlistApi.importSpotify(url),
+    mutationFn: (url: string) => playlistApi.importPlaylist(url),
     onSuccess: async (playlist) => {
       await queryClient.invalidateQueries({ queryKey: ["playlists"] });
       router.replace(`/(tabs)/library/${playlist.id}`);
@@ -51,8 +65,27 @@ export default function ImportPlaylistScreen() {
 
   return (
     <Screen className="pt-4">
+      <Text className="font-inter text-sm uppercase tracking-[2px] text-vault-accent">
+        Library
+      </Text>
       <VaultHeading>Import playlist</VaultHeading>
-      <VaultSubheading>Paste a public Spotify playlist link.</VaultSubheading>
+      <VaultSubheading>
+        Paste a public Spotify or YouTube playlist link. Tracks import with artwork and
+        metadata.
+      </VaultSubheading>
+
+      <View className="mt-6 flex-row gap-2">
+        {EXAMPLES.map((example, index) => (
+          <VaultButton
+            key={example.label}
+            className="flex-1"
+            label={example.label}
+            uppercase={false}
+            variant={activeExample === index ? "primary" : "secondary"}
+            onPress={() => setActiveExample(index as 0 | 1)}
+          />
+        ))}
+      </View>
 
       <View className="mt-8 gap-4">
         <Controller
@@ -64,10 +97,10 @@ export default function ImportPlaylistScreen() {
               autoCorrect={false}
               error={error?.message}
               keyboardType="url"
-              label="Spotify playlist URL"
+              label={`${EXAMPLES[activeExample].label} playlist URL`}
               onBlur={onBlur}
               onChangeText={onChange}
-              placeholder="https://open.spotify.com/playlist/..."
+              placeholder={EXAMPLES[activeExample].placeholder}
               value={value}
             />
           )}
@@ -78,10 +111,15 @@ export default function ImportPlaylistScreen() {
         ) : null}
 
         <VaultButton
-          label="Import"
+          label="Import playlist"
           loading={isSubmitting || importMutation.isPending}
           onPress={onSubmit}
         />
+
+        <Text className="font-inter text-xs leading-5 text-vault-muted">
+          Spotify playlists are metadata-only (play via JioSaavn/YouTube search). YouTube
+          playlists can be played directly in VibeVault.
+        </Text>
       </View>
     </Screen>
   );

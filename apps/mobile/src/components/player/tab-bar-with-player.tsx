@@ -4,9 +4,11 @@ import { PlayerChrome } from "@/components/player/player-chrome";
 
 export function TabBarWithPlayer(props: BottomTabBarProps) {
   return (
-    <View>
+    <View className="bg-vault-background">
       <PlayerChrome />
-      <BottomTabBar {...props} />
+      <View className="border-t border-vault-border bg-vault-backgroundSoft/95">
+        <BottomTabBar {...props} />
+      </View>
     </View>
   );
 }

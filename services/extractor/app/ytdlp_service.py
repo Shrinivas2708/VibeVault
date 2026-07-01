@@ -25,9 +25,8 @@ YOUTUBE_PLAYER_CLIENTS: list[list[str]] = [
 
 
 def _utc_iso(offset_seconds: int = 3600) -> str:
-    return (
-        datetime.now(timezone.utc) + timedelta(seconds=offset_seconds)
-    ).isoformat()
+    instant = datetime.now(timezone.utc) + timedelta(seconds=offset_seconds)
+    return instant.replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _base_opts(**extra: Any) -> dict[str, Any]:
@@ -231,7 +230,9 @@ def resolve_download(url: str) -> dict[str, Any]:
 
 
 def import_playlist(url: str, max_tracks: int = 100) -> dict[str, Any]:
-    with yt_dlp.YoutubeDL(_base_opts(extract_flat=True)) as ydl:
+    opts = _youtube_opts(YOUTUBE_PLAYER_CLIENTS[0], extract_flat=True)
+
+    with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(url, download=False)
 
     if info.get("_type") != "playlist":

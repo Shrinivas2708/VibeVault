@@ -82,13 +82,15 @@ interface VaultHeadingProps {
 
 export function VaultHeading({ children }: VaultHeadingProps) {
   return (
-    <Text className="font-jakarta-bold text-2xl text-vault-text">{children}</Text>
+    <Text className="mt-1 font-jakarta-bold text-3xl tracking-tight text-vault-text">
+      {children}
+    </Text>
   );
 }
 
 export function VaultSubheading({ children }: VaultHeadingProps) {
   return (
-    <Text className="mt-2 font-inter text-base text-vault-muted">
+    <Text className="mt-2 font-inter text-sm leading-6 text-vault-muted">
       {children}
     </Text>
   );

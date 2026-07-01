@@ -31,6 +31,7 @@ async function toProxiedManifestIfNeeded(
     ...manifest,
     deliveryMode: "proxied",
     url: `/v1/stream/media?token=${encodeURIComponent(token)}`,
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     headers: undefined,
   };
 }

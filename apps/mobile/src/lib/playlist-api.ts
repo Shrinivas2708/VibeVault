@@ -23,7 +23,7 @@ export const playlistApi = {
       SavedPlaylistSchema,
     ),
 
-  importSpotify: (url: string) =>
+  importPlaylist: (url: string) =>
     apiRequest(
       "/v1/playlists/import",
       {

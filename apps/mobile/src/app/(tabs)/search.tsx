@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Keyboard, Text, View } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import { SearchInput } from "@/components/search/search-input";
 import { SearchMessage } from "@/components/search/search-message";
 import { SearchResultsList } from "@/components/search/search-results-list";
-import { VaultHeading } from "@/components/ui/button";
+import { LibraryHub } from "@/components/library/library-hub";
+import { VaultHeading, VaultSubheading } from "@/components/ui/button";
 import { Screen } from "@/components/ui/screen";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { usePlayTrack } from "@/hooks/use-play-track";
@@ -25,8 +27,17 @@ function activeTrackKey(track: TrackMetadata | null) {
 }
 
 export default function SearchScreen() {
-  const [query, setQuery] = useState("");
+  const params = useLocalSearchParams<{ q?: string }>();
+  const [query, setQuery] = useState(
+    typeof params.q === "string" ? params.q : "",
+  );
   const debouncedQuery = useDebouncedValue(query, 400);
+
+  useEffect(() => {
+    if (typeof params.q === "string" && params.q.length > 0) {
+      setQuery(params.q);
+    }
+  }, [params.q]);
 
   const { data, error, isLoading, isFetching, isError } =
     useUnifiedSearch(debouncedQuery);
@@ -65,40 +76,50 @@ export default function SearchScreen() {
       : null;
 
   return (
-    <Screen className="pt-4" padded={false}>
+    <Screen className="pt-2" padded={false}>
       <View className="px-6">
+        <Text className="font-inter text-sm uppercase tracking-[2px] text-vault-accent">
+          Discover
+        </Text>
         <VaultHeading>Search</VaultHeading>
-        <View className="mt-4">
+        <VaultSubheading>One query. YouTube, JioSaavn, Spotify.</VaultSubheading>
+        <View className="mt-5">
           <SearchInput value={query} onChangeText={setQuery} />
+        </View>
+        <View className="mt-4">
+          <LibraryHub />
         </View>
       </View>
 
       {resolveError ? (
-        <View className="mx-6 mt-3 rounded-vault-lg bg-vault-surface px-3 py-2">
+        <View className="mx-6 mt-3 rounded-vault-lg border border-vault-negative/30 bg-vault-negative/10 px-4 py-3">
           <Text className="font-inter text-sm text-vault-negative">{resolveError}</Text>
         </View>
       ) : null}
 
-      <View className="mt-4 flex-1 px-4">
+      <View className="mt-5 flex-1 px-4">
         {showHint ? (
           <SearchMessage
-            subtitle="Results are merged from YouTube, JioSaavn, and Spotify."
+            icon="search"
+            subtitle="Try an artist, song, or vibe. JioSaavn is best for playback."
             title="What do you want to listen to?"
           />
         ) : null}
 
         {showMinLength ? (
           <SearchMessage
+            icon="text"
             title={`Type at least ${SEARCH_MIN_QUERY_LENGTH} characters`}
           />
         ) : null}
 
         {isDebouncing ? (
-          <SearchMessage title="Searching…" />
+          <SearchMessage icon="hourglass-outline" title="Searching…" />
         ) : null}
 
         {errorMessage && trimmedDebounced.length >= SEARCH_MIN_QUERY_LENGTH ? (
           <SearchMessage
+            icon="cloud-offline-outline"
             subtitle="Check that the API is running and try again."
             title={errorMessage}
           />

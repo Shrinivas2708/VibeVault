@@ -46,7 +46,7 @@ export function SearchResultsList({
   return (
     <View className="min-h-[200px] flex-1">
       {providersFailed.length > 0 ? (
-        <View className="mb-3 rounded-vault-lg bg-vault-surface px-3 py-2">
+        <View className="mb-3 rounded-vault-lg border border-vault-warning/30 bg-vault-warning/10 px-3 py-2">
           <Text className="font-inter text-xs text-vault-warning">
             Some providers are unavailable: {providersFailed.join(", ")}
           </Text>

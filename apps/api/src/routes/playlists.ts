@@ -21,7 +21,7 @@ playlistRoutes.post(
   async (c) => {
     const { url } = c.req.valid("json");
     const userId = c.get("userId")!;
-    const playlist = await playlistService.importSpotifyPlaylist(userId, url);
+    const playlist = await playlistService.importPlaylist(userId, url);
     return jsonSuccess(c, SavedPlaylistSchema.parse(playlist), 201);
   },
 );

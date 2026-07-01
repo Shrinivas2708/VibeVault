@@ -50,14 +50,15 @@ export function PlaybackButtons({
       <Pressable
         accessibilityLabel={isPlaying ? "Pause" : "Play"}
         accessibilityRole="button"
-        className="p-2"
+        className="h-11 w-11 items-center justify-center rounded-full bg-vault-accent"
         hitSlop={8}
         onPress={handleToggle}
       >
         <Ionicons
-          color="#ffffff"
+          color="#000000"
           name={isPlaying ? "pause" : "play"}
           size={playSize}
+          style={{ marginLeft: isPlaying ? 0 : 2 }}
         />
       </Pressable>
     );
@@ -83,7 +84,7 @@ export function PlaybackButtons({
       <Pressable
         accessibilityLabel={isPlaying ? "Pause" : "Play"}
         accessibilityRole="button"
-        className="h-16 w-16 items-center justify-center rounded-full bg-vault-accent"
+        className="h-16 w-16 items-center justify-center rounded-full bg-vault-accent shadow-vault-glow"
         onPress={handleToggle}
       >
         <Ionicons

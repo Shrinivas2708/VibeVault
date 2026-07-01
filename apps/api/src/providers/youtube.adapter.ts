@@ -85,7 +85,7 @@ export function createYouTubeAdapter(): MusicProvider {
           trackRef: ref,
           deliveryMode: "direct",
           url: stream.url,
-          expiresAt: stream.expires_at,
+          expiresAt: new Date(stream.expires_at).toISOString(),
           mimeType: stream.mime_type ?? undefined,
           bitrate: stream.bitrate ?? undefined,
           isVideo: stream.is_video,

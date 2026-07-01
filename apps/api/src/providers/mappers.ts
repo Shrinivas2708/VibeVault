@@ -28,6 +28,61 @@ export function toTrackRef(
   return { providerId, externalId, url };
 }
 
+function nullToUndefined<T>(value: T | null | undefined): T | undefined {
+  return value === null ? undefined : value;
+}
+
+export function sanitizeTrackMetadata(
+  track: TrackMetadata,
+): TrackMetadata | null {
+  const externalId = track.ref.externalId?.trim();
+  if (!externalId) {
+    return null;
+  }
+
+  return {
+    ...track,
+    ref: {
+      ...track.ref,
+      externalId,
+      url: nullToUndefined(track.ref.url),
+    },
+    title: track.title.trim() || "Unknown Title",
+    artists: track.artists
+      .filter((artist) => artist.name?.trim())
+      .map((artist) => ({
+        name: artist.name.trim(),
+        ...(artist.id ? { id: artist.id } : {}),
+      })),
+    album: track.album
+      ? {
+          ...track.album,
+          artworkUrl: nullToUndefined(track.album.artworkUrl),
+        }
+      : undefined,
+    artworkUrl: nullToUndefined(track.artworkUrl),
+    durationMs: nullToUndefined(track.durationMs),
+    releaseYear: nullToUndefined(track.releaseYear),
+  };
+}
+
+export function sanitizeImportedPlaylist(
+  playlist: ImportedPlaylist,
+): ImportedPlaylist {
+  const tracks = playlist.tracks
+    .map(sanitizeTrackMetadata)
+    .filter((track): track is TrackMetadata => track !== null);
+
+  return {
+    ...playlist,
+    artworkUrl: nullToUndefined(playlist.artworkUrl),
+    description: nullToUndefined(playlist.description),
+    owner: nullToUndefined(playlist.owner),
+    trackCount: tracks.length,
+    tracks,
+  };
+}
+
 export function extractorToMetadata(track: ExtractorTrack): TrackMetadata {
   return {
     ref: toTrackRef("youtube", track.id, track.url),
@@ -124,7 +179,7 @@ export function buildSearchPage(
 }
 
 export function extractorToPlaylist(data: ExtractorPlaylist): ImportedPlaylist {
-  return {
+  return sanitizeImportedPlaylist({
     id: data.id ?? undefined,
     name: data.name,
     description: data.description ?? undefined,
@@ -134,11 +189,11 @@ export function extractorToPlaylist(data: ExtractorPlaylist): ImportedPlaylist {
     sourceUrl: data.source_url,
     sourceProviderId: "youtube",
     tracks: data.tracks.map(extractorToMetadata),
-  };
+  });
 }
 
 export function jiosaavnToPlaylist(data: JioSaavnPlaylist): ImportedPlaylist {
-  return {
+  return sanitizeImportedPlaylist({
     id: data.id,
     name: data.name,
     description: data.description ?? undefined,
@@ -147,11 +202,11 @@ export function jiosaavnToPlaylist(data: JioSaavnPlaylist): ImportedPlaylist {
     sourceUrl: data.url,
     sourceProviderId: "jiosaavn",
     tracks: (data.songs ?? []).map(jiosaavnToMetadata),
-  };
+  });
 }
 
 export function spotifyToPlaylist(data: SpotifyPlaylist): ImportedPlaylist {
-  return {
+  return sanitizeImportedPlaylist({
     id: data.id ?? undefined,
     name: data.name,
     description: data.description ?? undefined,
@@ -161,7 +216,7 @@ export function spotifyToPlaylist(data: SpotifyPlaylist): ImportedPlaylist {
     sourceUrl: data.source_url,
     sourceProviderId: "spotify",
     tracks: data.tracks.map(spotifyToMetadata),
-  };
+  });
 }
 
 export function jiosaavnStreamManifest(

@@ -16,8 +16,8 @@ export default function FavoritesScreen() {
   return (
     <Screen className="pt-4" padded={false}>
       <View className="px-6">
-        <VaultHeading>Favorites</VaultHeading>
-        <VaultSubheading>Tracks you have saved.</VaultSubheading>
+        <VaultHeading>Likes</VaultHeading>
+        <VaultSubheading>Tracks you liked — tap ♥ on any song to save it here.</VaultSubheading>
       </View>
 
       <View className="mt-6 min-h-[200px] flex-1 px-4">

@@ -45,13 +45,18 @@ function toFavorite(doc: FavoriteDocument): Favorite {
 }
 
 function toHistoryEntry(doc: HistoryDocument): HistoryEntry {
-  return {
+  const entry: HistoryEntry = {
     id: doc._id.toHexString(),
     userId: doc.userId.toHexString(),
     track: doc.track,
     playedAt: doc.playedAt.toISOString(),
-    durationPlayedMs: doc.durationPlayedMs,
   };
+
+  if (typeof doc.durationPlayedMs === "number") {
+    entry.durationPlayedMs = doc.durationPlayedMs;
+  }
+
+  return entry;
 }
 
 export async function listFavorites(userId: string): Promise<Favorite[]> {
@@ -160,8 +165,11 @@ export async function recordHistory(
     userId: new ObjectId(userId),
     track,
     playedAt: new Date(),
-    durationPlayedMs,
   };
+
+  if (durationPlayedMs !== undefined) {
+    doc.durationPlayedMs = durationPlayedMs;
+  }
 
   const result = await history().insertOne(doc as HistoryDocument);
   return toHistoryEntry({ _id: result.insertedId, ...doc });

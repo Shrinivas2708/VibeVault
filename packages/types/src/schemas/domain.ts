@@ -10,7 +10,7 @@ export const TrackRefSchema = z.object({
 export type TrackRef = z.infer<typeof TrackRefSchema>;
 
 export const ArtistSummarySchema = z.object({
-  id: z.string().optional(),
+  id: z.string().nullish(),
   name: z.string().min(1),
 });
 
@@ -19,7 +19,7 @@ export type ArtistSummary = z.infer<typeof ArtistSummarySchema>;
 export const AlbumSummarySchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
-  artworkUrl: z.string().url().optional(),
+  artworkUrl: z.string().url().nullish(),
 });
 
 export type AlbumSummary = z.infer<typeof AlbumSummarySchema>;
@@ -28,9 +28,9 @@ export const TrackMetadataSchema = z.object({
   ref: TrackRefSchema,
   title: z.string().min(1),
   artists: z.array(ArtistSummarySchema).min(1),
-  album: AlbumSummarySchema.optional(),
-  artworkUrl: z.string().url().optional(),
-  durationMs: z.number().int().nonnegative().optional(),
+  album: AlbumSummarySchema.nullish(),
+  artworkUrl: z.string().url().nullish(),
+  durationMs: z.number().int().nonnegative().nullish(),
   isVideo: z.boolean().default(false),
   releaseYear: z.number().int().optional(),
 });
@@ -87,8 +87,8 @@ export type StreamOptions = z.infer<typeof StreamOptionsSchema>;
 export const StreamManifestSchema = z.object({
   trackRef: TrackRefSchema,
   deliveryMode: DeliveryModeSchema.default("direct"),
-  url: z.string().url(),
-  expiresAt: z.string().datetime(),
+  url: z.union([z.string().url(), z.string().regex(/^\/.+/)]),
+  expiresAt: z.string().datetime({ offset: true }),
   mimeType: z.string().optional(),
   bitrate: z.number().int().positive().optional(),
   isVideo: z.boolean().default(false),
@@ -119,7 +119,7 @@ export const PlaylistSummarySchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1),
   description: z.string().optional(),
-  artworkUrl: z.string().url().optional(),
+  artworkUrl: z.string().url().nullish(),
   trackCount: z.number().int().nonnegative().optional(),
   owner: z.string().optional(),
 });
@@ -145,12 +145,12 @@ export const SavedPlaylistSummarySchema = z.object({
   userId: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
-  artworkUrl: z.string().url().optional(),
+  artworkUrl: z.string().url().nullish(),
   trackCount: z.number().int().nonnegative(),
   sourceUrl: z.string().url(),
   sourceProviderId: ProviderIdSchema,
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.string().datetime({ offset: true }),
+  updatedAt: z.string().datetime({ offset: true }),
 });
 
 export type SavedPlaylistSummary = z.infer<typeof SavedPlaylistSummarySchema>;
@@ -191,7 +191,7 @@ export const HistoryEntrySchema = z.object({
   userId: z.string().min(1),
   track: TrackMetadataSchema,
   playedAt: z.string().datetime(),
-  durationPlayedMs: z.number().int().nonnegative().optional(),
+  durationPlayedMs: z.number().int().nonnegative().nullish(),
 });
 
 export type HistoryEntry = z.infer<typeof HistoryEntrySchema>;
@@ -204,7 +204,7 @@ export type AddFavoriteRequest = z.infer<typeof AddFavoriteRequestSchema>;
 
 export const RecordHistoryRequestSchema = z.object({
   track: TrackMetadataSchema,
-  durationPlayedMs: z.number().int().nonnegative().optional(),
+  durationPlayedMs: z.number().int().nonnegative().nullish(),
 });
 
 export type RecordHistoryRequest = z.infer<typeof RecordHistoryRequestSchema>;

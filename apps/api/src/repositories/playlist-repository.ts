@@ -1,6 +1,15 @@
 import { ObjectId, type Collection } from "mongodb";
-import type { ImportedPlaylist, SavedPlaylist, SavedPlaylistSummary } from "@vibevault/types";
+import type {
+  ImportedPlaylist,
+  SavedPlaylist,
+  SavedPlaylistSummary,
+  TrackMetadata,
+} from "@vibevault/types";
 import { getDb } from "../lib/db";
+import {
+  sanitizeImportedPlaylist,
+  sanitizeTrackMetadata,
+} from "../providers/mappers";
 
 export interface PlaylistDocument {
   _id: ObjectId;
@@ -20,14 +29,22 @@ function playlists(): Collection<PlaylistDocument> {
   return getDb().collection<PlaylistDocument>("playlists");
 }
 
+function sanitizeStoredTracks(tracks: TrackMetadata[]): TrackMetadata[] {
+  return tracks
+    .map(sanitizeTrackMetadata)
+    .filter((track): track is TrackMetadata => track !== null);
+}
+
 function toSummary(doc: PlaylistDocument): SavedPlaylistSummary {
+  const tracks = sanitizeStoredTracks(doc.tracks);
+
   return {
     id: doc._id.toHexString(),
     userId: doc.userId.toHexString(),
     name: doc.name,
-    description: doc.description,
-    artworkUrl: doc.artworkUrl,
-    trackCount: doc.trackCount,
+    description: doc.description ?? undefined,
+    artworkUrl: doc.artworkUrl ?? undefined,
+    trackCount: tracks.length,
     sourceUrl: doc.sourceUrl,
     sourceProviderId: doc.sourceProviderId,
     createdAt: doc.createdAt.toISOString(),
@@ -36,9 +53,11 @@ function toSummary(doc: PlaylistDocument): SavedPlaylistSummary {
 }
 
 function toSavedPlaylist(doc: PlaylistDocument): SavedPlaylist {
+  const tracks = sanitizeStoredTracks(doc.tracks);
+
   return {
     ...toSummary(doc),
-    tracks: doc.tracks,
+    tracks,
   };
 }
 
@@ -49,19 +68,21 @@ export async function upsertPlaylistBySourceUrl(input: {
   const now = new Date();
   const userObjectId = new ObjectId(input.userId);
 
+  const imported = sanitizeImportedPlaylist(input.imported);
+
   const update = {
-    name: input.imported.name,
-    description: input.imported.description,
-    artworkUrl: input.imported.artworkUrl,
-    trackCount: input.imported.tracks.length,
-    sourceProviderId: input.imported.sourceProviderId,
-    tracks: input.imported.tracks,
+    name: imported.name,
+    description: imported.description,
+    artworkUrl: imported.artworkUrl,
+    trackCount: imported.tracks.length,
+    sourceProviderId: imported.sourceProviderId,
+    tracks: imported.tracks,
     updatedAt: now,
   };
 
   const existing = await playlists().findOne({
     userId: userObjectId,
-    sourceUrl: input.imported.sourceUrl,
+    sourceUrl: imported.sourceUrl,
   });
 
   if (existing) {
@@ -72,7 +93,7 @@ export async function upsertPlaylistBySourceUrl(input: {
 
   const doc: Omit<PlaylistDocument, "_id"> = {
     userId: userObjectId,
-    sourceUrl: input.imported.sourceUrl,
+    sourceUrl: imported.sourceUrl,
     createdAt: now,
     ...update,
   };

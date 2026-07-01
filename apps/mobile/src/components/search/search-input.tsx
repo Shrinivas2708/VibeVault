@@ -22,8 +22,10 @@ export function SearchInput({
   };
 
   return (
-    <View className="flex-row items-center rounded-vault-pill border border-vault-border-light bg-vault-surface-elevated px-4 py-3">
-      <Ionicons color="#b3b3b3" name="search" size={20} />
+    <View className="flex-row items-center rounded-vault-pill border border-vault-border-light bg-vault-surface-card/90 px-4 py-3.5 shadow-vault-soft">
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-vault-accent-soft">
+        <Ionicons color="#1ed760" name="search" size={18} />
+      </View>
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}
@@ -39,11 +41,11 @@ export function SearchInput({
         <Pressable
           accessibilityLabel="Clear search"
           accessibilityRole="button"
-          className="ml-2 p-1"
+          className="ml-2 rounded-full bg-vault-surface-elevated p-1.5"
           hitSlop={8}
           onPress={handleClear}
         >
-          <Ionicons color="#b3b3b3" name="close-circle" size={20} />
+          <Ionicons color="#b3b3b3" name="close" size={16} />
         </Pressable>
       ) : null}
     </View>
