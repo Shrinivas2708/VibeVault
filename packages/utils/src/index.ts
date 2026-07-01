@@ -7,6 +7,11 @@ export {
   deduplicateSearchResults,
   rankSearchResults,
 } from "./search";
+export {
+  boostYouTubeMusicSignals,
+  buildYouTubeQueriesFromHints,
+  filterYouTubeSearchResults,
+} from "./youtube-search";
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));

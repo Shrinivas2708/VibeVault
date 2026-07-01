@@ -3,8 +3,6 @@ import type { SearchResult } from "@vibevault/types";
 import * as Haptics from "expo-haptics";
 import { ApiClientError } from "@/lib/api-client";
 import { libraryApi } from "@/lib/library-api";
-import { isNativePlaybackSupported } from "@/lib/platform";
-import { musicApi } from "@/lib/music-api";
 import { playerEngine } from "@/services/player-engine";
 import { showToast } from "@/stores/toast-store";
 import {
@@ -18,21 +16,8 @@ export function usePlayTrack() {
 
   return useMutation({
     mutationFn: async (result: SearchResult) => {
-      if (isNativePlaybackSupported) {
-        await playerEngine.playSearchResult(result);
-        return searchResultToTrack(result);
-      }
-
-      const track = searchResultToTrack(result);
-      const manifest = await musicApi.resolveStream({ trackRef: track.ref });
-      const enqueueTrack = usePlayerStore.getState().enqueueTrack;
-      const setStreamManifest = usePlayerStore.getState().setStreamManifest;
-      const setIsPlaying = usePlayerStore.getState().setIsPlaying;
-
-      enqueueTrack(track);
-      setStreamManifest(manifest);
-      setIsPlaying(true);
-      return track;
+      await playerEngine.playSearchResult(result);
+      return searchResultToTrack(result);
     },
     onMutate: () => {
       setIsResolving(true);
