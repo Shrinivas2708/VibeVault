@@ -27,7 +27,7 @@ export function PlaybackButtons({
 }: PlaybackButtonsProps) {
   const isMini = size === "mini";
   const iconSize = isMini ? 22 : 28;
-  const playSize = isMini ? 26 : 36;
+  const playSize = isMini ? 20 : 36;
 
   const handleToggle = () => {
     hapticLight();
@@ -50,7 +50,7 @@ export function PlaybackButtons({
       <Pressable
         accessibilityLabel={isPlaying ? "Pause" : "Play"}
         accessibilityRole="button"
-        className="h-11 w-11 items-center justify-center rounded-full bg-vault-accent"
+        className="h-9 w-9 items-center justify-center rounded-full bg-vault-accent"
         hitSlop={8}
         onPress={handleToggle}
       >

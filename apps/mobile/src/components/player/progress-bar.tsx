@@ -10,6 +10,7 @@ interface ProgressBarProps {
   duration: number;
   onSeek: (seconds: number) => void;
   large?: boolean;
+  compact?: boolean;
 }
 
 export function ProgressBar({
@@ -17,6 +18,7 @@ export function ProgressBar({
   duration,
   onSeek,
   large = false,
+  compact = false,
 }: ProgressBarProps) {
   const [barWidth, setBarWidth] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -87,20 +89,22 @@ export function ProgressBar({
   const gesture = Gesture.Race(pan, tap);
 
   return (
-    <View className="gap-2">
+    <View className={compact ? "" : "gap-2"}>
       <GestureDetector gesture={gesture}>
         <View
-          className={`justify-center ${large ? "h-6" : "h-3"}`}
+          className={`justify-center ${large ? "h-6" : compact ? "h-2" : "h-3"}`}
           onLayout={onLayout}
         >
-          <View className={`rounded-vault-pill bg-vault-surface-elevated ${large ? "h-1.5" : "h-1"}`}>
+          <View
+            className={`rounded-vault-pill bg-vault-surface-elevated ${large ? "h-1.5" : "h-1"}`}
+          >
             <View
               className="h-full rounded-vault-pill bg-vault-accent"
               style={{
                 width: `${ratio * 100}%`,
-                shadowColor: "#1ed760",
-                shadowOpacity: 0.45,
-                shadowRadius: 6,
+                shadowColor: large ? "#1ed760" : "transparent",
+                shadowOpacity: large ? 0.45 : 0,
+                shadowRadius: large ? 6 : 0,
               }}
             />
           </View>
@@ -113,14 +117,16 @@ export function ProgressBar({
         </View>
       </GestureDetector>
 
-      <View className="flex-row justify-between">
-        <Text className="font-inter text-xs text-vault-muted">
-          {formatDuration(shownPosition * 1000)}
-        </Text>
-        <Text className="font-inter text-xs text-vault-muted">
-          {formatDuration(safeDuration * 1000)}
-        </Text>
-      </View>
+      {compact ? null : (
+        <View className="flex-row justify-between">
+          <Text className="font-inter text-xs text-vault-muted">
+            {formatDuration(shownPosition * 1000)}
+          </Text>
+          <Text className="font-inter text-xs text-vault-muted">
+            {formatDuration(safeDuration * 1000)}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

@@ -14,7 +14,7 @@ import { PlaybackButtons } from "./playback-buttons";
 import { ProgressBar } from "./progress-bar";
 import { QueueSheet } from "./queue-sheet";
 import { TrackArtwork } from "./track-artwork";
-import { VolumeControl } from "./volume-control";
+import { VolumeSlider } from "./volume-slider";
 
 export function NowPlayingModal() {
   const isOpen = usePlayerUiStore((state) => state.isNowPlayingOpen);
@@ -42,6 +42,8 @@ export function NowPlayingModal() {
     return null;
   }
 
+  const artworkUri = getTrackArtworkUri(currentTrack);
+
   return (
     <Modal
       animationType="none"
@@ -52,15 +54,16 @@ export function NowPlayingModal() {
       onRequestClose={closeNowPlaying}
     >
       <View className="flex-1 bg-vault-background">
-        {getTrackArtworkUri(currentTrack) ? (
+        {artworkUri ? (
           <Image
+            blurRadius={48}
             contentFit="cover"
-            source={{ uri: getTrackArtworkUri(currentTrack) }}
+            source={{ uri: artworkUri }}
             style={StyleSheet.absoluteFillObject}
           />
         ) : null}
-        <BlurView intensity={90} style={StyleSheet.absoluteFillObject} tint="dark" />
-        <View className="absolute inset-0 bg-black/55" />
+        <BlurView intensity={80} style={StyleSheet.absoluteFillObject} tint="dark" />
+        <View className="absolute inset-0 bg-black/60" />
 
         <SafeAreaView className="flex-1">
           <Animated.View
@@ -68,7 +71,7 @@ export function NowPlayingModal() {
             entering={SlideInDown.duration(300)}
             exiting={SlideOutDown.duration(250)}
           >
-            <View className="flex-row items-center justify-between px-4 py-2">
+            <View className="mx-auto w-full max-w-lg flex-row items-center justify-between px-4 py-2">
               <Pressable
                 accessibilityLabel="Close now playing"
                 accessibilityRole="button"
@@ -88,9 +91,9 @@ export function NowPlayingModal() {
               </Pressable>
             </View>
 
-            <View className="flex-1 items-center justify-center px-8">
-              <TrackArtwork size={280} track={currentTrack} radius={12} />
-              <View className="mt-8 w-full items-center gap-2">
+            <View className="mx-auto w-full max-w-lg flex-1 items-center justify-center px-6">
+              <TrackArtwork size={240} track={currentTrack} radius={16} />
+              <View className="mt-6 w-full items-center gap-2">
                 <Text
                   className="text-center font-jakarta text-2xl text-vault-text"
                   numberOfLines={2}
@@ -109,14 +112,22 @@ export function NowPlayingModal() {
               </View>
             </View>
 
-            <View className="gap-6 px-6 pb-8">
-              <VolumeControl />
-              <ProgressBar
-                duration={duration}
-                large
-                position={position}
-                onSeek={seekTo}
-              />
+            <View className="mx-auto w-full max-w-lg gap-5 px-6 pb-8">
+              <View className="gap-4 rounded-vault-2xl border border-vault-border/80 bg-black/35 p-4">
+                <VolumeSlider showLabel />
+                <View className="gap-2">
+                  <Text className="font-inter-semibold text-xs uppercase tracking-[1.5px] text-vault-muted">
+                    Progress
+                  </Text>
+                  <ProgressBar
+                    duration={duration}
+                    large
+                    position={position}
+                    onSeek={seekTo}
+                  />
+                </View>
+              </View>
+
               <PlaybackButtons
                 hasNext={hasNext}
                 hasPrevious={hasPrevious}
@@ -131,7 +142,7 @@ export function NowPlayingModal() {
 
           {isQueueOpen ? (
             <Animated.View
-              className="absolute inset-x-0 bottom-0"
+              className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-lg"
               entering={FadeIn.duration(200)}
               exiting={FadeOut.duration(150)}
             >
