@@ -2,7 +2,7 @@
 
 > **Read this first in every new session.** Living handoff document — update after every milestone.
 
-**Last updated:** 2025-06-25 · **Current milestone:** M14 complete → **MVP done**
+**Last updated:** 2026-06-29 · **Current milestone:** M14 complete + post-MVP playback/search polish
 
 ---
 
@@ -12,7 +12,7 @@ Self-hosted, multi-provider music + music-video app for **iOS & Android**. Frien
 
 | Area | Decision |
 |------|----------|
-| Mobile | Expo 54, EAS dev builds, NativeWind, TanStack Query, Zustand, track-player (later) |
+| Mobile | Expo 54, EAS dev builds, NativeWind, TanStack Query, Zustand, track-player |
 | Backend | Node/Bun API (Hono) + Python extractor (yt-dlp) + self-hosted JioSaavn API |
 | Database | MongoDB |
 | Monorepo | Turborepo + Bun workspaces |
@@ -91,7 +91,7 @@ scripts/dev.ps1       Windows dev bootstrap
 - `GET /v1/tracks/:providerId/:externalId` — metadata
 - `POST /v1/stream/resolve` — StreamManifest
 - `POST /v1/downloads/resolve` — DownloadManifest
-- Per-provider timeout (8s) with graceful degradation
+- Per-provider timeouts (JioSaavn 5s, Spotify 4s, YouTube 6s) + 2min in-memory cache
 - Dedup prefers **jiosaavn > youtube > spotify** for same title/artist
 - Test script: `scripts/test-search.ps1`
 
@@ -232,6 +232,27 @@ scripts/init-letsencrypt.sh, renew-letsencrypt.sh, backup-mongodb.sh, deploy-pro
 apps/mobile/eas.json, app.config.js
 ```
 
+### Post-MVP — Playback, Queue & Spotify Polish ✅
+- **Queue semantics:** `queue` = upcoming tracks only; `addToQueue()` is explicit; Play does not auto-add
+- **Skip safety:** playback generation token — rapid skips ignore stale match/resolve completions
+- **Queue preloader:** pre-match + pre-resolve next 3 tracks (`queue-preloader.ts`, `playable-cache.ts`)
+- **Spotify playback:** `POST /v1/tracks/match` (JioSaavn-first, YouTube fallback) + playlist Play/Shuffle/Download
+- **Spotify artwork:** oEmbed fallback + `playlist-artwork-service` enrichment on read
+- **Search UX:** Likes/History hub removed from Search tab (Home/Library only)
+- **Web volume:** mini-player vertical popover (portal); Now Playing horizontal slider beside skip-forward (centered transport)
+- **Artwork:** `upgradeArtworkUrl` / `pickBestImageUrl` → higher-res thumbnails
+
+**Key paths:**
+```
+apps/api/src/services/match-service.ts, search-service.ts
+apps/mobile/src/services/resolve-playable-track.ts, queue-preloader.ts, playback-session.ts
+apps/mobile/src/components/player/playback-buttons.web.tsx, inline-volume-control.web.tsx
+apps/mobile/src/components/library/playlist-actions.tsx
+packages/utils/src/image.ts
+```
+
+**EAS / testing:** See `docs/DEVELOPMENT.md` — `eas init`, `eas build --profile development`, `expo start --dev-client`, API URL by device type.
+
 ---
 
 ## Package Dependency Rules
@@ -251,7 +272,7 @@ services/*   →  HTTP only; no TS imports from apps
 ```typescript
 MusicProvider { search, getMetadata, resolveStream, importPlaylist, resolveDownload? }
 ```
-Runtime (Node/Python) is invisible to mobile. Spotify metadata only — playback resolves via other providers (TBD at M4/M5).
+Runtime (Node/Python) is invisible to mobile. Spotify is metadata-only — playback uses `POST /v1/tracks/match` then stream resolve on JioSaavn/YouTube.
 
 ### Stream manifest (`@vibevault/types`)
 ```typescript
@@ -289,6 +310,10 @@ bun run typecheck
 bun run build
 bun run dev --filter=@vibevault/mobile
 .\scripts\dev.ps1                     # full stack + mobile
+
+# Native dev build (once) + daily Metro
+cd apps/mobile && eas build --profile development --platform android
+cd apps/mobile && npx expo start --dev-client
 ```
 
 ---
@@ -297,10 +322,11 @@ bun run dev --filter=@vibevault/mobile
 
 | Item | Status |
 |------|--------|
-| Spotify → playable stream matching | TBD at M4/M5 (JioSaavn/YouTube match) |
-| Nginx + TLS | M14 |
+| Spotify → playable stream matching | ✅ `POST /v1/tracks/match` + mobile `resolve-playable-track` |
+| Nginx + TLS | ✅ M14 |
 | Proxied streaming | Feature flag ready, not implemented |
 | react-native-track-player | ✅ M8 |
+| EAS project linking | Run `eas init` if `app.json` has placeholder `projectId` |
 
 ---
 
@@ -332,4 +358,4 @@ bun run dev --filter=@vibevault/mobile
 
 ## Suggested Next Commit
 
-MVP milestones M1–M14 are complete. Next work is post-MVP backlog (see ROADMAP.md).
+MVP milestones M1–M14 are complete. Post-MVP polish (queue, match, search, volume) is documented above. See ROADMAP.md for remaining backlog.

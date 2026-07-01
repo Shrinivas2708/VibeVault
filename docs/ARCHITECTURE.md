@@ -217,7 +217,7 @@ The unified search layer queries only providers where `capabilities.search === t
 | `spotify` | SpotifyScraper | Python (spotify service) | ✓ | ✗* | ✓ | ✗ |
 | `jiosaavn` | jiosaavn-api | Node (service) | ✓ | ✓ | ✓ | ✓ |
 
-\* Spotify provides metadata and playlist import; playback resolves through a linked stream provider (e.g., JioSaavn or YouTube match) — exact matching strategy TBD at implementation.
+\* Spotify provides metadata and playlist import; playback resolves via `POST /v1/tracks/match` (JioSaavn first, YouTube fallback) before `POST /v1/stream/resolve`.
 
 ### Unified Search Flow
 

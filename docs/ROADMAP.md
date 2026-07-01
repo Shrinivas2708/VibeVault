@@ -376,15 +376,22 @@ feat(infra): add production docker compose and nginx deployment
 
 ## Post-MVP Backlog
 
-| Feature | Notes |
-|---------|-------|
-| Proxied streaming fallback | Enable per-provider via feature flag |
-| Apple Music adapter | New provider adapter only |
-| Collaborative playlists | Shared playlist model |
-| Cross-device sync | Requires server-side media or metadata sync strategy |
-| Web client | Expo web or separate app |
-| Recommendations / ML | Python service extension |
-| Admin dashboard | User management on VPS |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Spotify → playable match | ✅ Done | `POST /v1/tracks/match`, playlist Play/Shuffle |
+| Queue / skip hardening | ✅ Done | Upcoming-only queue, playback generation token, preloader |
+| Search performance | ✅ Done | Per-provider timeouts, 2min cache |
+| Web volume control | ✅ Done | Mini popover + Now Playing inline slider |
+| Artwork quality | ✅ Done | `upgradeArtworkUrl` in `@vibevault/utils` |
+| Proxied streaming fallback | Planned | Enable per-provider via feature flag |
+| Apple Music adapter | Planned | New provider adapter only |
+| Collaborative playlists | Planned | Shared playlist model |
+| Cross-device sync | Planned | Server-side sync strategy |
+| Web client polish | Planned | Expo web — playback works; not primary target |
+| Recommendations / ML | Planned | Python service extension |
+| Admin dashboard | Planned | User management on VPS |
+| Performance audit | Planned | FlashList tuning, re-render reduction |
+| Video playback toggle | Deferred | `FF_VIDEO_PLAYBACK` |
 
 ---
 

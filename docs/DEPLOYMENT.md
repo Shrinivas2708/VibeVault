@@ -88,7 +88,7 @@ Set per profile in `apps/mobile/eas.json`:
 
 | Profile | Purpose | Typical `EXPO_PUBLIC_API_URL` |
 |---------|---------|-------------------------------|
-| `development` | Dev client + simulator | `http://localhost:3000` |
+| `development` | Dev client | Set at **Metro start** (see [DEVELOPMENT.md](./DEVELOPMENT.md#api-url-by-target)) — not `localhost` on physical devices |
 | `preview` | Internal test builds | `https://api.yourdomain.com` |
 | `production` | App Store / Play Store | `https://api.yourdomain.com` |
 
@@ -279,32 +279,84 @@ Rate limits: `/v1/search` 30 req/min per IP; other routes 120 req/min.
 
 ## Mobile App Deployment (EAS)
 
-The mobile app is **not** in Docker Compose.
+The mobile app is **not** in Docker Compose. It is built with [EAS Build](https://docs.expo.dev/build/introduction/) and talks to your API over HTTP(S).
+
+### Prerequisites
+
+- [Expo account](https://expo.dev/signup)
+- EAS CLI: `npm install -g eas-cli` (or `npx eas-cli`)
+- Run `eas init` once in `apps/mobile` if `app.json` still has `replace-with-eas-project-id`
 
 ### Configure API URL
 
-1. Replace `api.yourdomain.com` in `apps/mobile/eas.json` with your domain
-2. Or set `EXPO_PUBLIC_API_URL` in [EAS Secrets](https://docs.expo.dev/build-reference/variables/)
+| Build type | Where to set `EXPO_PUBLIC_API_URL` |
+|------------|-------------------------------------|
+| Dev client + Metro | `apps/mobile/.env` or shell when running `expo start --dev-client` |
+| Standalone EAS build | `apps/mobile/eas.json` per profile, or [EAS Secrets](https://docs.expo.dev/build-reference/variables/) |
+
+Profiles in `apps/mobile/eas.json`:
+
+| Profile | Purpose | Typical API URL |
+|---------|---------|-----------------|
+| `development` | Dev client (APK / iOS simulator) | Set at Metro time — see below |
+| `preview` | Internal test APK/IPA | `https://api.yourdomain.com` |
+| `production` | Store release | `https://api.yourdomain.com` |
+
+**Important:** `http://localhost:3000` in the `development` profile only works for **web** or **iOS Simulator on the same Mac**. Real devices need your PC’s LAN IP or a deployed API:
+
+| Target | URL |
+|--------|-----|
+| Android emulator | `http://10.0.2.2:3000` |
+| Physical phone (same Wi‑Fi) | `http://<lan-ip>:3000` |
+| Production / preview | `https://api.yourdomain.com` |
+
+`apps/mobile/app.config.js` enables Android cleartext traffic when the URL uses `http://`.
+
+### First-time EAS setup
+
+```powershell
+cd apps\mobile
+eas login
+eas init
+```
 
 ### Build profiles
 
-```sh
-cd apps/mobile
+```powershell
+cd apps\mobile
 
-# Dev client (local API, cleartext OK on Android)
-npx eas-cli build --profile development --platform android
+# Dev client — install APK, then use expo start --dev-client
+eas build --profile development --platform android
 
-# Internal test build (HTTPS production API)
-npx eas-cli build --profile preview --platform all
+# Internal test (HTTPS production API)
+eas build --profile preview --platform android
 
 # Store release
-npx eas-cli build --profile production --platform all
+eas build --profile production --platform android
 ```
+
+iOS from Windows: cloud builds work, but **simulator** dev builds only run on a Mac; physical iPhone needs Apple Developer enrollment.
+
+### Run and test after install
+
+```powershell
+# Terminal 1 — backend
+docker compose up --build -d
+
+# Terminal 2 — Metro (set API URL for your device)
+cd apps\mobile
+$env:EXPO_PUBLIC_API_URL="http://192.168.1.42:3000"
+npx expo start --dev-client
+```
+
+Download the APK from expo.dev → Builds, install, open the app, connect to Metro (QR or `a` for emulator).
+
+Full native test checklist: [DEVELOPMENT.md — Native test checklist](./DEVELOPMENT.md#native-test-checklist).
 
 ### OTA updates (optional)
 
 ```sh
-npx eas-cli update --branch production
+eas update --branch production
 ```
 
 ---
@@ -329,7 +381,10 @@ npx eas-cli update --branch production
 | nginx won't start with `USE_HTTPS=true` | Certs missing | Run `init-letsencrypt.sh` first |
 | `JWT_SECRET` compose error | Empty secret in `.env` | Generate and set `JWT_SECRET` |
 | API stuck on `depends_on` | Slow provider build | `docker compose -f docker-compose.prod.yml logs jiosaavn` |
-| Mobile can't reach API | Wrong `EXPO_PUBLIC_API_URL` | Use `https://` domain in EAS profile |
+| Mobile can't reach API | Wrong `EXPO_PUBLIC_API_URL` | Physical device: use LAN IP, not `localhost`. Preview/prod: `https://` domain |
+| EAS build fails on project ID | Placeholder in `app.json` | Run `eas init` in `apps/mobile` |
+| Dev client won't load JS | Network / firewall | Same Wi‑Fi; allow port 3000; try `expo start --dev-client --tunnel` |
+| Search very slow first time | Cold provider containers | Wait for `docker compose` health; rebuild API image after API changes |
 | `401` on `/v1/search` | No auth token | Register/login first |
 | certbot fails | DNS not propagated | Wait for A record; try `--staging` |
 

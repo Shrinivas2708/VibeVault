@@ -224,6 +224,12 @@ GET /v1/search?q=believer&page=1&limit=10
 
 Duplicate tracks (same title + artist) are deduplicated. Playable providers (JioSaavn, YouTube) are preferred over Spotify metadata-only results.
 
+**Implementation notes:**
+
+- Providers queried in parallel with per-provider timeouts: JioSaavn 5s, Spotify 4s, YouTube 6s
+- Identical queries cached in memory for 2 minutes (API process)
+- Failed providers listed in `providersFailed`; partial results still return
+
 ---
 
 ### `GET /v1/tracks/:providerId/:externalId`
@@ -242,6 +248,31 @@ Track metadata for a single provider.
 ```
 GET /v1/tracks/jiosaavn/3IoDK8qI
 ```
+
+---
+
+### `POST /v1/tracks/match`
+
+Find a **playable** track (JioSaavn or YouTube) for metadata that cannot stream directly — e.g. Spotify playlist imports.
+
+**Body:**
+
+```json
+{
+  "title": "Blinding Lights",
+  "artists": [{ "name": "The Weeknd" }],
+  "durationMs": 200000
+}
+```
+
+**Response `200`:** A single `SearchResult` with a playable `ref` (`jiosaavn` or `youtube`).
+
+**Strategy:** JioSaavn search first (best-effort), then YouTube fallback; ranked via `pickBestPlayableMatch`.
+
+**Errors:**
+
+- `404` — no confident match found
+- `503` — providers unavailable / timed out
 
 ---
 
@@ -381,7 +412,9 @@ Full playlist with `tracks[]` (`TrackMetadata` per track).
 
 **Notes:**
 
-- Tracks are Spotify metadata; playback uses stream resolve on the track's `ref` (typically fails for `spotify` — cross-provider matching is future work)
+- Tracks are Spotify metadata (`ref.providerId: spotify`) — **do not** call `POST /v1/stream/resolve` on them directly
+- Mobile resolves playback via `POST /v1/tracks/match`, then stream resolve on the matched playable `ref`
+- Playlist detail supports Play, Shuffle, and per-track Download on matched providers
 - User can only access their own playlists
 
 ---

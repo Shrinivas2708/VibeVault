@@ -21,9 +21,11 @@ Self-hosted, multi-provider music platform for iOS and Android.
 
 - [Bun](https://bun.sh) 1.2+
 - [Docker](https://www.docker.com/) Desktop
-- Expo Go or EAS dev build (dev builds required for native modules later)
+- [Expo account](https://expo.dev/signup) + EAS CLI for **native** builds (not Expo Go)
 
 ## Quick Start
+
+**Web / API development:**
 
 ```powershell
 # Windows
@@ -42,6 +44,8 @@ bun install
 docker compose up --build -d
 bun run dev --filter=@vibevault/mobile
 ```
+
+Press `w` for web UI. **Native playback** (MMKV, background audio, downloads) requires an EAS dev build — see [DEVELOPMENT.md](docs/DEVELOPMENT.md#eas-dev-build--native-testing).
 
 ## Services
 
@@ -64,4 +68,4 @@ packages/       Shared types, config, UI tokens, provider contracts
 
 ## Status
 
-**Milestone 11 complete** — device downloads and offline playback. Next: M12 (Library Features).
+**Milestone 14 complete** — MVP shipped (VPS deploy, EAS profiles, full mobile feature set). Post-MVP: Spotify match/playback, queue hardening, search performance, web volume. See [MEMORY.md](docs/MEMORY.md) and [ROADMAP.md](docs/ROADMAP.md).

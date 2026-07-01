@@ -23,7 +23,7 @@
 | M13 Polish | ✅ | Skeletons, toasts, pull-to-refresh, artwork placeholders |
 | M14 VPS deploy | ✅ | Production Docker, nginx, TLS, backups, EAS |
 
-**UI polish is live (M13).** VPS deployment is M14.
+**MVP (M1–M14) is complete.** Post-MVP playback/search polish documented in MEMORY.md. Further backlog in ROADMAP.md.
 
 ---
 
@@ -124,12 +124,24 @@ No changes required in search orchestrator or mobile if the adapter implements t
 ### Unified search (`apps/api/src/services/search-service.ts`)
 
 1. Fan-out to all `providerRegistry.listSearchable()` in parallel
-2. Per-provider timeout: 8 seconds
-3. Merge results → assign relevance scores → dedupe by title+artist
-4. Dedup priority: **jiosaavn > youtube > spotify**
-5. Rank and paginate
+2. Per-provider timeouts: **JioSaavn 5s**, **Spotify 4s**, **YouTube 6s**
+3. In-memory cache (2 minutes) for identical queries
+4. Merge results → assign relevance scores → dedupe by title+artist
+5. Dedup priority: **jiosaavn > youtube > spotify**
+6. Rank and paginate
 
 Failed providers go in `providersFailed`; partial results still return.
+
+### Cross-provider match (`apps/api/src/services/match-service.ts`)
+
+Used when metadata is not directly playable (Spotify tracks). `POST /v1/tracks/match`:
+
+1. Build query from `title` + primary artist
+2. Search JioSaavn (limit 8), pick best match by title/artist/duration
+3. If none, search YouTube (limit 5) and pick again
+4. Return normalized `SearchResult` with playable `ref`
+
+Mobile caches matches in `playable-cache.ts` and dedupes in-flight requests via `resolve-playable-track.ts`.
 
 ### Streaming (`apps/api/src/services/media-service.ts`)
 
@@ -170,7 +182,7 @@ Zod schemas are the **single source of truth**. API validates requests/responses
 
 `apps/mobile` has an authenticated **tab shell** with login/register, design tokens, and API wiring.
 
-**Implemented (M6–M9):**
+**Implemented (M6–M14 + post-MVP polish):**
 
 ```
 src/
@@ -180,30 +192,35 @@ src/
 │   ├── (auth)/              # login, register
 │   └── (tabs)/              # home, search, library, settings
 ├── components/
-│   ├── ui/                  # Screen, VaultButton, VaultInput
-│   └── search/              # SearchInput, TrackRow, ProviderBadge, list
+│   ├── ui/                  # Screen, skeleton, toast, artwork
+│   ├── search/              # SearchInput, TrackRow, add-to-queue
+│   ├── library/             # playlist-actions, library-track-row
+│   └── player/              # mini-player, now-playing, queue, volume (web)
 ├── hooks/
 │   ├── use-unified-search.ts
 │   ├── use-play-track.ts
-│   └── use-debounced-value.ts
+│   └── use-scroll-bottom-inset.ts
 ├── lib/
 │   ├── api-client.ts        # Typed fetch + JWT refresh
-│   ├── music-api.ts         # search + stream resolve
+│   ├── music-api.ts         # search, match, stream resolve
+│   ├── resolve-playable-track.ts, playable-cache.ts
 │   ├── storage.ts           # MMKV (native) / localStorage (web)
-│   ├── query-client.ts
 │   └── config.ts            # EXPO_PUBLIC_API_URL
 ├── stores/
-│   ├── auth-store.ts        # Zustand + MMKV session
-│   └── player-store.ts      # Queue, progress, stream manifest
+│   ├── auth-store.ts
+│   ├── player-store.ts      # currentTrack, queue (upcoming only), volume
+│   └── download-store.ts
 ├── services/
-│   ├── player-engine.native.ts  # RNTP setup + playback
-│   └── playback-service.ts      # Lock screen remote events
-├── components/player/       # MiniPlayer, NowPlayingModal, QueueSheet, ProgressBar
-│   └── tab-bar-with-player.tsx
-├── hooks/use-playback-controls.ts
-├── stores/player-ui-store.ts
+│   ├── player-engine.native.ts / .web.ts
+│   ├── playback-core.ts, playback-session.ts
+│   ├── queue-preloader.ts   # pre-match next 3 tracks
+│   └── download-manager.*.ts
 └── providers/app-providers.tsx
 ```
+
+**Queue behavior:** `player-store.queue` holds **upcoming** tracks only. `addToQueue()` is explicit (UI button). Play/skip uses a playback generation token so stale async resolves cannot corrupt the queue after rapid skips.
+
+**Web vs native:** Native uses `react-native-track-player`. Web uses `web-audio-player.ts` with optional volume UI (`*.web.tsx` platform files).
 
 **MVP (M1–M14) is complete.** Post-MVP backlog in ROADMAP.md.
 
@@ -219,18 +236,20 @@ Stack:
 | Playback | react-native-track-player (EAS dev build) |
 | Storage | MMKV |
 
-**Env:** `EXPO_PUBLIC_API_URL` (default `http://localhost:3000`). Android emulator: use `http://10.0.2.2:3000`.
+**Env:** `EXPO_PUBLIC_API_URL` (default `http://localhost:3000`). See [DEVELOPMENT.md](./DEVELOPMENT.md#api-url-by-target) for emulator, physical device, and production URLs.
 
-**Dev builds:** MMKV and `react-native-track-player` need an EAS dev client:
+**Dev builds:** MMKV and `react-native-track-player` need an EAS dev client. Full walkthrough: [DEVELOPMENT.md — EAS Dev Build](./DEVELOPMENT.md#eas-dev-build--native-testing).
 
-```sh
+```powershell
 cd apps/mobile
-npx eas-cli build --profile development --platform android
-# or --platform ios
+eas login
+eas init
+eas build --profile development --platform android
+$env:EXPO_PUBLIC_API_URL="http://10.0.2.2:3000"   # emulator; use LAN IP on physical device
 npx expo start --dev-client
 ```
 
-Web (`w` in Expo) supports auth/search UI only — playback resolves streams but does not play audio.
+Web (`w` in Expo) supports auth/search UI; web audio playback works via `web-audio-player` but native features (downloads, background audio, lock screen) require a dev build.
 
 ---
 

@@ -15,7 +15,7 @@ Install before starting:
 | [Git](https://git-scm.com/) | Clone repo |
 | Node (optional) | Expo tooling; Bun is primary |
 
-For mobile later: [Expo CLI](https://docs.expo.dev/), EAS CLI, Xcode (iOS), Android Studio (Android).
+For native mobile: [Expo account](https://expo.dev/signup), [EAS CLI](https://docs.expo.dev/build/setup/), Android Studio (emulator) or a physical Android device. iOS simulator builds require a Mac; physical iPhone needs an Apple Developer account.
 
 ---
 
@@ -81,17 +81,81 @@ Uses local MongoDB at `mongodb://localhost:27017/vibevault` if you set that in `
 bun run dev --filter=@vibevault/mobile
 ```
 
-Set `EXPO_PUBLIC_API_URL` in `.env` (see `.env.example`). For Android emulator pointing at host API: `http://10.0.2.2:3000`.
+Set `EXPO_PUBLIC_API_URL` when starting Metro (see [API URL by target](#api-url-by-target) below). Expo reads `.env` from `apps/mobile/` (not the repo root).
 
-**Native dev build (MMKV + playback):** Expo Go is not supported. From `apps/mobile`:
+**Web vs native:** Press `w` in Expo for web — auth, search, and UI work; **playback and downloads require a native EAS dev build** (`react-native-track-player`, MMKV).
 
-```sh
-npx eas-cli build --profile development --platform android
-# or --platform ios
+---
+
+## EAS Dev Build & Native Testing
+
+Expo Go is **not supported** — the app uses `react-native-mmkv`, `react-native-track-player`, and `expo-dev-client`.
+
+### One-time setup
+
+```powershell
+cd apps\mobile
+npm install -g eas-cli    # optional; or use npx eas-cli
+eas login
+eas init                  # links project — replaces placeholder projectId in app.json
+```
+
+First `eas build` will prompt for Android package name (e.g. `com.yourname.vibevault`). Let EAS manage the keystore unless you already have one.
+
+### Build the dev client
+
+```powershell
+cd apps\mobile
+eas build --profile development --platform android
+```
+
+| Profile | Output | When to use |
+|---------|--------|-------------|
+| `development` | Dev client APK (Android) / simulator build (iOS) | Daily dev — loads JS from Metro |
+| `preview` | Standalone APK/IPA | Share with testers; needs HTTPS API |
+| `production` | Store build | App Store / Play Store |
+
+First cloud build usually takes **10–20 minutes**. Download the APK from [expo.dev](https://expo.dev) → your project → **Builds**, then install on a device (enable “Install unknown apps”) or drag onto an Android emulator.
+
+### Connect dev client to Metro
+
+Backend must be running (`docker compose up --build -d`). Set the API URL, then start the dev server:
+
+```powershell
+cd apps\mobile
+$env:EXPO_PUBLIC_API_URL="http://192.168.1.42:3000"   # see table below
 npx expo start --dev-client
 ```
 
-Web (`w` in Expo) works for auth and search; audio requires a dev build.
+- **Emulator:** press `a` in the terminal
+- **Physical phone:** scan QR (same Wi‑Fi as PC); use `--tunnel` if LAN discovery fails
+
+Rebuild with EAS only when **native** dependencies change (new native module, SDK bump). Day-to-day JS changes reload from Metro.
+
+### API URL by target
+
+| Target | `EXPO_PUBLIC_API_URL` |
+|--------|------------------------|
+| Web (`expo start --web`) | `http://localhost:3000` |
+| Android emulator | `http://10.0.2.2:3000` |
+| Physical phone (same Wi‑Fi) | `http://<your-pc-lan-ip>:3000` |
+| Preview / production EAS build | `https://api.yourdomain.com` |
+
+Find LAN IP: `ipconfig` (Windows) or `ip addr` (Linux). Allow inbound TCP **3000** through Windows Firewall if the phone cannot reach the API.
+
+`apps/mobile/eas.json` bakes `EXPO_PUBLIC_API_URL` into **standalone** EAS builds. For dev-client workflow, the value at **Metro start time** (`.env` or shell env) is what matters for JS bundles.
+
+### Native test checklist
+
+After installing the dev client APK and connecting to Metro:
+
+1. **Auth** — register, log in, kill app, reopen (session persists)
+2. **Search** — query returns results (API reachable)
+3. **Play** — tap track → mini-player → audio plays
+4. **Queue** — use “Add to queue” explicitly; Play does not auto-queue; “Up next” excludes current track
+5. **Spotify playlists** — import URL → Play / Shuffle (matches via `POST /v1/tracks/match`)
+6. **Downloads** — download track → play from Downloads offline
+7. **Background** — lock screen / notification controls continue playback
 
 ---
 
@@ -180,8 +244,11 @@ Search/stream routes require JWT (M5). The mobile app (M6) provides login/regist
 
 | File | Committed | Purpose |
 |------|-----------|---------|
-| `.env.example` | Yes | Template |
-| `.env` | No (gitignored) | Your local secrets |
+| `.env.example` | Yes | Template (repo root — API / Docker) |
+| `.env` | No (gitignored) | Your local secrets (repo root) |
+| `apps/mobile/.env` | No (gitignored) | `EXPO_PUBLIC_API_URL` for Expo / Metro |
+
+Copy root env: `cp .env.example .env`. For mobile, create `apps/mobile/.env` or set the variable in your shell when running `expo start`.
 
 **Local API outside Docker** — use:
 
