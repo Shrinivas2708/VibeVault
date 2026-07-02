@@ -1,6 +1,7 @@
 import type { TrackMetadata } from "@vibevault/types";
 import { create } from "zustand";
 import { findDownloadJob, findDownloadRecord } from "@/lib/download-lookup";
+import { isDownloadCancelledError } from "@/lib/download-errors";
 import { getErrorMessage } from "@/lib/error-message";
 import { resolvePlayableTrack } from "@/lib/resolve-playable-track";
 import { downloadManager } from "@/services/download-manager";
@@ -13,6 +14,7 @@ interface DownloadState {
   isHydrated: boolean;
   hydrate: () => Promise<void>;
   startDownload: (track: TrackMetadata) => Promise<void>;
+  cancelDownload: (track: TrackMetadata) => Promise<void>;
   deleteDownload: (trackId: string) => Promise<void>;
   getDownloadRecord: (track: TrackMetadata) => DownloadRecord | null;
   isDownloaded: (track: TrackMetadata) => boolean;
@@ -21,6 +23,31 @@ interface DownloadState {
 
 function jobKeyForTrack(track: TrackMetadata) {
   return trackKey(track);
+}
+
+function removeJobsForKeys(jobs: Record<string, DownloadJobState>, keys: string[]) {
+  const next = { ...jobs };
+  for (const key of keys) {
+    delete next[key];
+  }
+  return next;
+}
+
+function collectCancelKeys(
+  records: DownloadRecord[],
+  jobs: Record<string, DownloadJobState>,
+  track: TrackMetadata,
+) {
+  const uiKey = jobKeyForTrack(track);
+  const record = findDownloadRecord(records, track);
+  const job = findDownloadJob(jobs, records, track);
+  const keys = new Set<string>([uiKey]);
+
+  if (record?.id) keys.add(record.id);
+  if (record?.sourceTrackId) keys.add(record.sourceTrackId);
+  if (job?.trackId) keys.add(job.trackId);
+
+  return [...keys];
 }
 
 export const useDownloadStore = create<DownloadState>((set, get) => ({
@@ -35,7 +62,6 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
 
   startDownload: async (sourceTrack) => {
     const uiKey = jobKeyForTrack(sourceTrack);
-    let playable = sourceTrack;
 
     set((state) => ({
       jobs: {
@@ -45,9 +71,15 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
     }));
 
     try {
-      playable = await resolvePlayableTrack(sourceTrack);
-      const downloadId = trackKey(playable);
+      const playable = await resolvePlayableTrack(sourceTrack);
+      if (downloadManager.isCancelled([uiKey])) {
+        set((state) => ({
+          jobs: removeJobsForKeys(state.jobs, [uiKey]),
+        }));
+        return;
+      }
 
+      const downloadId = trackKey(playable);
       const record = await downloadManager.startDownload(
         playable,
         (progress) => {
@@ -62,7 +94,10 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
             },
           }));
         },
-        trackKey(sourceTrack),
+        uiKey,
+        {
+          isCancelled: () => downloadManager.isCancelled([uiKey, downloadId]),
+        },
       );
 
       set((state) => ({
@@ -78,6 +113,13 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
         },
       }));
     } catch (error) {
+      if (isDownloadCancelledError(error) || downloadManager.isCancelled([uiKey])) {
+        set((state) => ({
+          jobs: removeJobsForKeys(state.jobs, [uiKey]),
+        }));
+        return;
+      }
+
       set((state) => ({
         jobs: {
           ...state.jobs,
@@ -91,6 +133,16 @@ export const useDownloadStore = create<DownloadState>((set, get) => ({
       }));
       throw error;
     }
+  },
+
+  cancelDownload: async (track) => {
+    const { records, jobs } = get();
+    const keys = collectCancelKeys(records, jobs, track);
+
+    await downloadManager.cancelDownload(keys);
+    set((state) => ({
+      jobs: removeJobsForKeys(state.jobs, keys),
+    }));
   },
 
   deleteDownload: async (trackId) => {

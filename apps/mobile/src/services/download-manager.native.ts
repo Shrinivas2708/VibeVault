@@ -1,6 +1,7 @@
 import type { TrackMetadata } from "@vibevault/types";
 import * as FileSystem from "expo-file-system/legacy";
 import { downloadIndex } from "@/lib/download-index";
+import { DownloadCancelledError } from "@/lib/download-errors";
 import { musicApi } from "@/lib/music-api";
 import { trackKey } from "@/services/player-helpers";
 import type { DownloadRecord } from "@/types/download-record";
@@ -8,6 +9,8 @@ import type { DownloadRecord } from "@/types/download-record";
 const DOWNLOADS_DIR = `${FileSystem.documentDirectory ?? ""}downloads/`;
 
 const activeJobs = new Map<string, FileSystem.DownloadResumable>();
+const partialPaths = new Map<string, string>();
+const cancelledIds = new Set<string>();
 
 function extensionForFormat(format: string) {
   if (format === "best") return "m4a";
@@ -26,6 +29,36 @@ async function ensureDownloadsDir() {
   const info = await FileSystem.getInfoAsync(DOWNLOADS_DIR);
   if (!info.exists) {
     await FileSystem.makeDirectoryAsync(DOWNLOADS_DIR, { intermediates: true });
+  }
+}
+
+function isCancelled(
+  downloadId: string,
+  sourceTrackId?: string,
+  isCancelledFn?: () => boolean,
+) {
+  if (isCancelledFn?.()) return true;
+  if (cancelledIds.has(downloadId)) return true;
+  if (sourceTrackId && cancelledIds.has(sourceTrackId)) return true;
+  return false;
+}
+
+function assertNotCancelled(
+  downloadId: string,
+  sourceTrackId?: string,
+  isCancelledFn?: () => boolean,
+) {
+  if (isCancelled(downloadId, sourceTrackId, isCancelledFn)) {
+    throw new DownloadCancelledError();
+  }
+}
+
+async function cleanupPartialFile(path?: string) {
+  if (!path) return;
+  try {
+    await FileSystem.deleteAsync(path, { idempotent: true });
+  } catch {
+    // Ignore cleanup errors.
   }
 }
 
@@ -59,12 +92,41 @@ export const downloadManager = {
     return downloadIndex.getById(trackId) !== null;
   },
 
+  async cancelDownload(keys: string[]) {
+    for (const key of keys) {
+      cancelledIds.add(key);
+    }
+
+    await Promise.all(
+      [...activeJobs.entries()].map(async ([id, job]) => {
+        if (!keys.includes(id) && !cancelledIds.has(id)) return;
+
+        try {
+          await job.pauseAsync();
+        } catch {
+          // Ignore pause errors while canceling.
+        }
+
+        activeJobs.delete(id);
+        await cleanupPartialFile(partialPaths.get(id));
+        partialPaths.delete(id);
+      }),
+    );
+  },
+
+  isCancelled(keys: string[]) {
+    return keys.some((key) => cancelledIds.has(key));
+  },
+
   async startDownload(
     track: TrackMetadata,
     onProgress?: (progress: number) => void,
     sourceTrackId?: string,
+    options?: { isCancelled?: () => boolean },
   ): Promise<DownloadRecord> {
     const id = trackKey(track);
+    assertNotCancelled(id, sourceTrackId, options?.isCancelled);
+
     const existing = downloadIndex.getById(id);
 
     if (existing) {
@@ -76,8 +138,11 @@ export const downloadManager = {
     }
 
     await ensureDownloadsDir();
+    assertNotCancelled(id, sourceTrackId, options?.isCancelled);
 
     const manifest = await musicApi.resolveDownload({ trackRef: track.ref });
+    assertNotCancelled(id, sourceTrackId, options?.isCancelled);
+
     const paths = buildLocalPaths(track, manifest.format);
 
     if (activeJobs.has(id)) {
@@ -90,6 +155,7 @@ export const downloadManager = {
       paths.localPath,
       undefined,
       (progress) => {
+        if (isCancelled(id, sourceTrackId, options?.isCancelled)) return;
         const total = progress.totalBytesExpectedToWrite;
         const written = progress.totalBytesWritten;
         if (total > 0) {
@@ -99,9 +165,12 @@ export const downloadManager = {
     );
 
     activeJobs.set(id, download);
+    partialPaths.set(id, paths.localPath);
 
     try {
       const result = await download.downloadAsync();
+      assertNotCancelled(id, sourceTrackId, options?.isCancelled);
+
       if (!result?.uri) {
         throw new Error("Download failed");
       }
@@ -119,9 +188,18 @@ export const downloadManager = {
       };
 
       downloadIndex.upsert(record);
+      cancelledIds.delete(id);
+      if (sourceTrackId) cancelledIds.delete(sourceTrackId);
       return record;
+    } catch (error) {
+      if (isCancelled(id, sourceTrackId, options?.isCancelled) || error instanceof DownloadCancelledError) {
+        await cleanupPartialFile(paths.localPath);
+        throw new DownloadCancelledError();
+      }
+      throw error;
     } finally {
       activeJobs.delete(id);
+      partialPaths.delete(id);
     }
   },
 
@@ -137,6 +215,8 @@ export const downloadManager = {
         // Ignore pause errors while canceling.
       }
       activeJobs.delete(trackId);
+      await cleanupPartialFile(partialPaths.get(trackId));
+      partialPaths.delete(trackId);
     }
 
     const info = await FileSystem.getInfoAsync(record.localPath);

@@ -21,6 +21,7 @@ export function DownloadButton({
   showProgress = false,
 }: DownloadButtonProps) {
   const startDownload = useDownloadStore((state) => state.startDownload);
+  const cancelDownload = useDownloadStore((state) => state.cancelDownload);
   const { isDownloaded, isDownloading, isFailed, progress } = useDownloadStatus(track);
 
   if (!isNativePlaybackSupported) {
@@ -28,8 +29,17 @@ export function DownloadButton({
   }
 
   const handlePress = () => {
-    if (isDownloaded || isDownloading) return;
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    if (isDownloading) {
+      void cancelDownload(track).then(() => {
+        showToast("Download cancelled", "info");
+      });
+      return;
+    }
+
+    if (isDownloaded) return;
+
     void startDownload(track).catch((error) => {
       showToast(getErrorMessage(error, "Download failed."), "error");
     });
@@ -42,17 +52,17 @@ export function DownloadButton({
           isDownloaded
             ? "Downloaded"
             : isDownloading
-              ? "Downloading"
+              ? "Cancel download"
               : "Download track"
         }
         accessibilityRole="button"
         className="items-center p-2"
-        disabled={isDownloaded || isDownloading}
+        disabled={isDownloaded}
         hitSlop={8}
         onPress={handlePress}
       >
         {isDownloading ? (
-          <Ionicons color="#1ed760" name="download" size={size} />
+          <Ionicons color="#f3727f" name="close-circle" size={size} />
         ) : (
           <Ionicons
             color={isDownloaded ? "#1ed760" : isFailed ? "#f3727f" : "#b3b3b3"}
@@ -71,8 +81,8 @@ export function DownloadButton({
             Saved
           </Text>
         ) : isDownloading ? (
-          <Text className="mt-0.5 font-inter-semibold text-[10px] text-vault-accent">
-            {Math.round(progress * 100)}%
+          <Text className="mt-0.5 font-inter-semibold text-[10px] text-vault-negative">
+            Cancel
           </Text>
         ) : null}
       </Pressable>

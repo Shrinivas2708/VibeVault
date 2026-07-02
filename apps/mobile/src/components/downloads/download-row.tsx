@@ -4,7 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { ArtworkImage } from "@/components/ui/artwork-image";
 import * as Haptics from "expo-haptics";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { DownloadProgressBar } from "@/components/downloads/download-progress-bar";
 import { usePlayDownloadedTrack } from "@/hooks/use-play-downloaded-track";
+import { useDownloadStatus } from "@/hooks/use-download-status";
 import { formatArtists } from "@/lib/track-format";
 import { trackKey, usePlayerStore } from "@/stores/player-store";
 import { useDownloadStore } from "@/stores/download-store";
@@ -15,8 +17,9 @@ interface DownloadRowProps {
 
 export function DownloadRow({ record }: DownloadRowProps) {
   const deleteDownload = useDownloadStore((state) => state.deleteDownload);
-  const job = useDownloadStore((state) => state.jobs[record.id]);
+  const cancelDownload = useDownloadStore((state) => state.cancelDownload);
   const playDownloaded = usePlayDownloadedTrack();
+  const { isDownloading, progress } = useDownloadStatus(record.track);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const isResolving = usePlayerStore((state) => state.isResolving);
 
@@ -36,7 +39,10 @@ export function DownloadRow({ record }: DownloadRowProps) {
     void deleteDownload(record.id);
   };
 
-  const progress = job?.status === "downloading" ? job.progress : null;
+  const handleCancel = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    void cancelDownload(record.track);
+  };
 
   return (
     <View className="rounded-vault-lg bg-vault-surface-elevated px-2 py-2">
@@ -72,25 +78,31 @@ export function DownloadRow({ record }: DownloadRowProps) {
           {isResolvingThis ? (
             <ActivityIndicator color="#1ed760" size="small" />
           ) : null}
-          <Pressable
-            accessibilityLabel="Delete download"
-            accessibilityRole="button"
-            className="p-2"
-            onPress={handleDelete}
-          >
-            <Ionicons color="#b3b3b3" name="trash-outline" size={20} />
-          </Pressable>
+          {isDownloading ? (
+            <Pressable
+              accessibilityLabel="Cancel download"
+              accessibilityRole="button"
+              className="p-2"
+              onPress={handleCancel}
+            >
+              <Ionicons color="#f3727f" name="close-circle" size={20} />
+            </Pressable>
+          ) : (
+            <Pressable
+              accessibilityLabel="Delete download"
+              accessibilityRole="button"
+              className="p-2"
+              onPress={handleDelete}
+            >
+              <Ionicons color="#b3b3b3" name="trash-outline" size={20} />
+            </Pressable>
+          )}
         </View>
       </View>
 
-      {progress !== null ? (
+      {isDownloading ? (
         <View className="mt-2 px-2">
-          <View className="h-1 overflow-hidden rounded-vault-pill bg-vault-border">
-            <View
-              className="h-full rounded-vault-pill bg-vault-accent"
-              style={{ width: `${Math.round(progress * 100)}%` }}
-            />
-          </View>
+          <DownloadProgressBar progress={progress} showPercent />
         </View>
       ) : null}
 

@@ -19,10 +19,17 @@ export const downloadManager = {
     return downloadIndex.getById(trackId) !== null;
   },
 
+  async cancelDownload(_keys: string[]) {},
+
+  isCancelled(_keys: string[]) {
+    return false;
+  },
+
   async startDownload(
     _track: TrackMetadata,
     _onProgress?: (progress: number) => void,
     _sourceTrackId?: string,
+    _options?: { isCancelled?: () => boolean },
   ): Promise<DownloadRecord> {
     throw new Error("Downloads are not supported on web.");
   },
