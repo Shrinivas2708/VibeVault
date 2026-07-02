@@ -25,7 +25,7 @@ function LibraryShortcut({ title, subtitle, icon, tint, onPress }: LibraryShortc
   return (
     <Pressable
       accessibilityRole="button"
-      className="flex-row items-center gap-4 rounded-vault-lg bg-vault-surface/80 px-4 py-3.5 active:bg-vault-surface"
+      className="flex-row items-center gap-4 rounded-vault-lg bg-vault-surface px-4 py-3.5 active:bg-vault-surface-elevated"
       onPress={onPress}
     >
       <View
@@ -106,7 +106,7 @@ export default function LibraryScreen() {
         ) : null}
 
         {!isLoading && !errorMessage && (data?.length ?? 0) === 0 ? (
-          <View className="items-center rounded-vault-lg bg-vault-surface px-6 py-10">
+          <View className="items-center px-6 py-10">
             <Ionicons color="#1ed760" name="albums-outline" size={36} />
             <Text className="mt-4 text-center font-inter-semibold text-base text-vault-text">
               No playlists yet

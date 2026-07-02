@@ -14,27 +14,27 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
     <Link asChild href={`/(tabs)/library/${playlist.id}`}>
       <Pressable accessibilityRole="button" className="mb-1 rounded-vault-md active:bg-vault-surface-elevated">
         <View className="flex-row items-center gap-3 px-1 py-2.5">
-            <ArtworkImage
+          <ArtworkImage
               label={`${playlist.name} artwork`}
               radius={12}
               size={60}
               uri={playlist.artworkUrl}
-            />
+          />
 
-            <View className="min-w-0 flex-1">
-              <Text className="font-inter-semibold text-base text-vault-text" numberOfLines={1}>
-                {playlist.name}
-              </Text>
-              <Text className="mt-1 font-inter text-sm text-vault-muted">
-                {playlist.trackCount} tracks
-              </Text>
-              <View className="mt-2">
-                <ProviderBadge providerId={playlist.sourceProviderId} />
-              </View>
+          <View className="min-w-0 flex-1">
+            <Text className="font-inter-semibold text-base text-vault-text" numberOfLines={1}>
+              {playlist.name}
+            </Text>
+            <Text className="mt-1 font-inter text-sm text-vault-muted">
+              {playlist.trackCount} tracks
+            </Text>
+            <View className="mt-2">
+              <ProviderBadge providerId={playlist.sourceProviderId} />
             </View>
-
-            <Ionicons color="#b3b3b3" name="chevron-forward" size={18} />
           </View>
+
+          <Ionicons color="#b3b3b3" name="chevron-forward" size={18} />
+        </View>
       </Pressable>
     </Link>
   );
