@@ -11,6 +11,7 @@
     "build:android:preview": "eas build --profile preview --platform android",
     "build:android:production": "eas build --profile production --platform android",
     "build:android:standalone": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/build-android-standalone.ps1",
+    "build:android:rebundle": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/rebundle-release-apk.ps1",
     "build:android:preview:local": "eas build --profile preview --platform android --local",
     "build:android:production:local": "eas build --profile production --platform android --local",
     "ios": "expo run:ios",

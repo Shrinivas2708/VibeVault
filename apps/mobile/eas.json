@@ -14,7 +14,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://onetune-api.onrender.com",
+        "EXPO_PUBLIC_API_URL": "https://api.onetune.shribuilds.in/",
         "EXPO_NO_METRO_WORKSPACE_ROOT": "1"
       }
     },
