@@ -41,8 +41,8 @@ export function LibraryTrackRow({
   };
 
   return (
-    <GlassCard active={isActive} className="mb-2" onPress={handlePress}>
-      <View className="flex-row items-center gap-3 p-3">
+    <GlassCard active={isActive} className="mb-0.5" onPress={handlePress}>
+      <View className="flex-row items-center gap-3 px-1 py-2">
         <ArtworkImage
           label={`${track.title} artwork`}
           radius={12}
