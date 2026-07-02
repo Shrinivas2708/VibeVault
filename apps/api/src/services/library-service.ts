@@ -40,3 +40,8 @@ export async function recordHistory(
 ): Promise<HistoryEntry> {
   return libraryRepository.recordHistory(userId, track, durationPlayedMs);
 }
+
+export async function clearHistory(userId: string) {
+  const deletedCount = await libraryRepository.clearHistory(userId);
+  return { success: true, deletedCount };
+}

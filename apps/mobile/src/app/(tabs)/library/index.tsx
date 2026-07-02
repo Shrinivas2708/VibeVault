@@ -84,7 +84,7 @@ export default function LibraryScreen() {
             onPress={() => router.push("/(tabs)/library/downloads")}
           />
           <VaultButton
-            label="Import playlist"
+            label="Import music"
             variant="secondary"
             uppercase={false}
             onPress={() => router.push("/(tabs)/library/import")}

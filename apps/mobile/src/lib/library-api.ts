@@ -49,6 +49,13 @@ export const libraryApi = {
       },
       HistoryEntrySchema,
     ),
+
+  clearHistory: () =>
+    apiRequest(
+      "/v1/library/history",
+      { method: "DELETE" },
+      z.object({ success: z.boolean(), deletedCount: z.number() }),
+    ),
 };
 
 export type { Favorite, HistoryEntry };

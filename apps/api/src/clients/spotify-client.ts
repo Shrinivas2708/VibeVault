@@ -49,3 +49,19 @@ export async function spotifyImportPlaylist(
   endpoint.searchParams.set("max_tracks", String(maxTracks));
   return fetchJson<SpotifyPlaylist>(endpoint.toString());
 }
+
+export async function spotifyImportAlbum(
+  url: string,
+  maxTracks = 100,
+): Promise<SpotifyPlaylist> {
+  const endpoint = new URL("/albums/import", env.SPOTIFY_URL);
+  endpoint.searchParams.set("url", url);
+  endpoint.searchParams.set("max_tracks", String(maxTracks));
+  return fetchJson<SpotifyPlaylist>(endpoint.toString());
+}
+
+export async function spotifyImportTrack(url: string): Promise<SpotifyPlaylist> {
+  const endpoint = new URL("/tracks/import", env.SPOTIFY_URL);
+  endpoint.searchParams.set("url", url);
+  return fetchJson<SpotifyPlaylist>(endpoint.toString());
+}

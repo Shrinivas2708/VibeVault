@@ -81,3 +81,12 @@ libraryRoutes.post(
     return jsonSuccess(c, HistoryEntrySchema.parse(entry), 201);
   },
 );
+
+libraryRoutes.delete("/library/history", async (c) => {
+  const userId = c.get("userId")!;
+  const result = await libraryService.clearHistory(userId);
+  return jsonSuccess(
+    c,
+    z.object({ success: z.boolean(), deletedCount: z.number() }).parse(result),
+  );
+});

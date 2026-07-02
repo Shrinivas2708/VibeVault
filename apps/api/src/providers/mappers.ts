@@ -205,6 +205,26 @@ export function jiosaavnToPlaylist(data: JioSaavnPlaylist): ImportedPlaylist {
   });
 }
 
+export function jiosaavnToAlbum(data: JioSaavnPlaylist): ImportedPlaylist {
+  return jiosaavnToPlaylist(data);
+}
+
+export function trackToImportedPlaylist(
+  track: TrackMetadata,
+  sourceUrl: string,
+  providerId: ProviderId,
+): ImportedPlaylist {
+  return sanitizeImportedPlaylist({
+    id: track.ref.externalId,
+    name: track.title,
+    artworkUrl: track.artworkUrl ?? track.album?.artworkUrl,
+    trackCount: 1,
+    sourceUrl,
+    sourceProviderId: providerId,
+    tracks: [track],
+  });
+}
+
 export function spotifyToPlaylist(data: SpotifyPlaylist): ImportedPlaylist {
   return sanitizeImportedPlaylist({
     id: data.id ?? undefined,

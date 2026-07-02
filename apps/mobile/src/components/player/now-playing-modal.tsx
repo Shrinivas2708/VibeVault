@@ -1,10 +1,10 @@
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Platform, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from "react-native-reanimated";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FavoriteButton } from "@/components/library/favorite-button";
 import { usePlaybackControls } from "@/hooks/use-playback-controls";
 import { formatArtists } from "@/lib/track-format";
@@ -44,6 +44,8 @@ export function NowPlayingModal() {
   }
 
   const artworkUri = getTrackArtworkUri(currentTrack);
+  const topInset =
+    insets.top || (Platform.OS === "android" ? StatusBar.currentHeight ?? 24 : 0);
 
   return (
     <Modal
@@ -66,7 +68,7 @@ export function NowPlayingModal() {
         <BlurView intensity={90} style={StyleSheet.absoluteFillObject} tint="dark" />
         <View className="absolute inset-0 bg-black/55" />
 
-        <SafeAreaView className="flex-1">
+        <View className="flex-1" style={{ paddingTop: topInset }}>
           <Animated.View
             className="flex-1"
             entering={SlideInDown.duration(300)}
@@ -154,7 +156,7 @@ export function NowPlayingModal() {
               />
             </Animated.View>
           ) : null}
-        </SafeAreaView>
+        </View>
         </View>
       </GestureHandlerRootView>
     </Modal>

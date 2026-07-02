@@ -139,6 +139,66 @@ def get_track(track_id: str) -> dict[str, Any]:
     return mapped
 
 
+def _album_url(album_id: str) -> str:
+    return f"https://open.spotify.com/album/{album_id}"
+
+
+def import_album(url: str, max_tracks: int = 100) -> dict[str, Any]:
+    with SpotifyClient() as client:
+        album = client.get_album(url)
+
+    album_id = _spotify_id(getattr(album, "id", None))
+    tracks_raw = getattr(album, "tracks", None) or []
+    tracks: list[dict[str, Any]] = []
+
+    for item in tracks_raw[:max_tracks]:
+        mapped = _map_track(item)
+        if mapped:
+            tracks.append(mapped)
+
+    if not tracks:
+        raise ValueError("No playable tracks found in this Spotify album")
+
+    artwork = _pick_image(getattr(album, "images", None))
+    if not artwork and album_id:
+        artwork = _oembed_thumbnail(_album_url(album_id))
+    if not artwork and tracks:
+        artwork = tracks[0].get("artwork_url")
+
+    artists = getattr(album, "artists", None) or []
+    artist_names = ", ".join(
+        getattr(artist, "name", "")
+        for artist in artists
+        if getattr(artist, "name", None)
+    )
+
+    return {
+        "id": album_id or None,
+        "name": getattr(album, "name", None) or "Spotify Album",
+        "description": artist_names or None,
+        "artwork_url": artwork,
+        "track_count": len(tracks),
+        "owner": None,
+        "source_url": url,
+        "tracks": tracks,
+    }
+
+
+def import_track(url: str) -> dict[str, Any]:
+    mapped = get_track(url)
+
+    return {
+        "id": mapped.get("id"),
+        "name": mapped.get("title") or "Spotify Track",
+        "description": None,
+        "artwork_url": mapped.get("artwork_url"),
+        "track_count": 1,
+        "owner": None,
+        "source_url": url,
+        "tracks": [mapped],
+    }
+
+
 def import_playlist(url: str, max_tracks: int = 100) -> dict[str, Any]:
     with SpotifyClient() as client:
         playlist = client.get_playlist(url, max_tracks=max_tracks)

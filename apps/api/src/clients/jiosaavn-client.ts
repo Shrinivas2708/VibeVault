@@ -71,6 +71,8 @@ export async function jiosaavnGetSong(id: string): Promise<JioSaavnSong> {
   return song;
 }
 
+export type JioSaavnAlbum = JioSaavnPlaylist;
+
 export async function jiosaavnImportPlaylist(
   url: string,
   limit = 100,
@@ -81,6 +83,28 @@ export async function jiosaavnImportPlaylist(
   }>(buildUrl("/api/playlists", { link: url, page: 0, limit }));
 
   return response.data;
+}
+
+export async function jiosaavnImportAlbum(url: string): Promise<JioSaavnAlbum> {
+  const response = await fetchJson<{
+    success: boolean;
+    data: JioSaavnAlbum;
+  }>(buildUrl("/api/albums", { link: url }));
+
+  return response.data;
+}
+
+export async function jiosaavnImportSongByLink(url: string): Promise<JioSaavnSong> {
+  const response = await fetchJson<{
+    success: boolean;
+    data: JioSaavnSong[];
+  }>(buildUrl("/api/songs", { link: url }));
+
+  const song = response.data[0];
+  if (!song) {
+    throw new Error(`JioSaavn song not found: ${url}`);
+  }
+  return song;
 }
 
 export function pickBestDownloadUrl(

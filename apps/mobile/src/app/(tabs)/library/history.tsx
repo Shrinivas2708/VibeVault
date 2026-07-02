@@ -1,11 +1,12 @@
+import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
-import { RefreshControl, Text, View } from "react-native";
+import { Alert, Pressable, RefreshControl, Text, View } from "react-native";
 import { LibraryTrackRow } from "@/components/library/library-track-row";
 import { VaultHeading, VaultSubheading } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
 import { Screen } from "@/components/ui/screen";
 import { TrackListSkeleton } from "@/components/ui/skeleton";
-import { useHistory } from "@/hooks/use-history";
+import { useClearHistory, useHistory } from "@/hooks/use-history";
 import { useScrollBottomInset } from "@/hooks/use-scroll-bottom-inset";
 import { formatArtists } from "@/lib/track-format";
 import { getErrorMessage } from "@/lib/error-message";
@@ -24,15 +25,48 @@ function formatPlayedAt(iso: string) {
 
 export default function HistoryScreen() {
   const { data, error, isLoading, refetch, isRefetching } = useHistory();
+  const clearHistory = useClearHistory();
   const bottomInset = useScrollBottomInset();
 
   const errorMessage = error ? getErrorMessage(error, "Could not load history.") : null;
+  const hasHistory = (data?.length ?? 0) > 0;
+
+  const confirmClearHistory = () => {
+    Alert.alert(
+      "Clear history?",
+      "This removes all recently played tracks. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear",
+          style: "destructive",
+          onPress: () => clearHistory.mutate(),
+        },
+      ],
+    );
+  };
 
   return (
     <Screen className="pt-4" padded={false}>
       <View className="px-6">
-        <VaultHeading>History</VaultHeading>
-        <VaultSubheading>Recently played tracks.</VaultSubheading>
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="min-w-0 flex-1">
+            <VaultHeading>History</VaultHeading>
+            <VaultSubheading>Recently played tracks.</VaultSubheading>
+          </View>
+
+          {hasHistory ? (
+            <Pressable
+              accessibilityLabel="Clear history"
+              accessibilityRole="button"
+              className="mt-1 rounded-vault-lg border border-vault-border bg-vault-surface-elevated p-2.5"
+              disabled={clearHistory.isPending}
+              onPress={confirmClearHistory}
+            >
+              <Ionicons color="#f3727f" name="trash-outline" size={20} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <View className="mt-6 min-h-0 flex-1 px-4">
@@ -42,7 +76,7 @@ export default function HistoryScreen() {
           <ErrorState message={errorMessage} onRetry={() => void refetch()} />
         ) : null}
 
-        {!isLoading && !errorMessage && (data?.length ?? 0) === 0 ? (
+        {!isLoading && !errorMessage && !hasHistory ? (
           <Text className="px-6 text-center font-inter text-sm text-vault-muted">
             Nothing played yet. Your listening history will show up here.
           </Text>

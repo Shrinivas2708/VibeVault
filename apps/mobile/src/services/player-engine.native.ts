@@ -55,6 +55,9 @@ async function resolvePlaybackSource(
   return { kind: "stream", manifest };
 }
 
+let queueAdvanceInFlight = false;
+let lastQueueAdvanceAt = 0;
+
 async function startNativePlayback(
   playable: TrackMetadata,
   manifest: PlaybackSource,
@@ -241,13 +244,25 @@ export const playerEngine = {
   },
 
   async handleQueueEnded() {
+    const now = Date.now();
+    if (queueAdvanceInFlight || now - lastQueueAdvanceAt < 1000) {
+      return;
+    }
+
     const queue = usePlayerStore.getState().queue;
     if (queue.length === 0) {
       usePlayerStore.getState().setIsPlaying(false);
       return;
     }
 
-    await this.skipToNext();
+    queueAdvanceInFlight = true;
+    lastQueueAdvanceAt = now;
+
+    try {
+      await this.skipToNext();
+    } finally {
+      queueAdvanceInFlight = false;
+    }
   },
 
   syncPlaybackState(state: State | undefined) {

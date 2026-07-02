@@ -174,3 +174,13 @@ export async function recordHistory(
   const result = await history().insertOne(doc as HistoryDocument);
   return toHistoryEntry({ _id: result.insertedId, ...doc });
 }
+
+export async function clearHistory(userId: string): Promise<number> {
+  if (!ObjectId.isValid(userId)) return 0;
+
+  const result = await history().deleteMany({
+    userId: new ObjectId(userId),
+  });
+
+  return result.deletedCount;
+}
