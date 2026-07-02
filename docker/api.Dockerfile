@@ -11,7 +11,7 @@ COPY packages/utils/package.json ./packages/utils/
 COPY packages/provider-core/package.json ./packages/provider-core/
 COPY packages/ui/package.json ./packages/ui/
 
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --ignore-scripts
 
 # Copy source
 COPY apps/api ./apps/api

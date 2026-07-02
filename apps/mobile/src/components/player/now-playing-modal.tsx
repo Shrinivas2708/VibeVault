@@ -44,8 +44,12 @@ export function NowPlayingModal() {
   }
 
   const artworkUri = getTrackArtworkUri(currentTrack);
-  const topInset =
-    insets.top || (Platform.OS === "android" ? StatusBar.currentHeight ?? 24 : 0);
+  const topInset = Math.max(
+    insets.top,
+    Platform.OS === "android" ? StatusBar.currentHeight ?? 28 : 0,
+    12,
+  );
+  const bottomInset = Math.max(insets.bottom, 16);
 
   return (
     <Modal
@@ -58,23 +62,23 @@ export function NowPlayingModal() {
     >
       <GestureHandlerRootView style={styles.flex}>
         <View className="flex-1 bg-vault-background">
-        {artworkUri ? (
-          <Image
-            contentFit="cover"
-            source={{ uri: artworkUri }}
-            style={StyleSheet.absoluteFillObject}
-          />
-        ) : null}
-        <BlurView intensity={90} style={StyleSheet.absoluteFillObject} tint="dark" />
-        <View className="absolute inset-0 bg-black/55" />
+          {artworkUri ? (
+            <Image
+              contentFit="cover"
+              source={{ uri: artworkUri }}
+              style={StyleSheet.absoluteFillObject}
+            />
+          ) : null}
+          <BlurView intensity={90} style={StyleSheet.absoluteFillObject} tint="dark" />
+          <View className="absolute inset-0 bg-black/55" />
 
-        <View className="flex-1" style={{ paddingTop: topInset }}>
           <Animated.View
             className="flex-1"
             entering={SlideInDown.duration(300)}
             exiting={SlideOutDown.duration(250)}
+            style={{ paddingTop: topInset, paddingBottom: bottomInset }}
           >
-            <View className="flex-row items-center justify-between px-4 py-2">
+            <View className="flex-row items-center justify-between px-4 pb-2 pt-1">
               <Pressable
                 accessibilityLabel="Close now playing"
                 accessibilityRole="button"
@@ -90,14 +94,18 @@ export function NowPlayingModal() {
                 className="p-2"
                 onPress={toggleQueue}
               >
-                <Ionicons color="#ffffff" name="list" size={24} />
+                <Ionicons
+                  color={isQueueOpen ? "#1ed760" : "#ffffff"}
+                  name="list"
+                  size={24}
+                />
               </Pressable>
             </View>
 
-            <View className="flex-1 justify-center px-8">
+            <View className="min-h-0 flex-1 justify-center px-8">
               <View className="items-center">
-                <TrackArtwork size={280} track={currentTrack} radius={12} />
-                <View className="mt-8 w-full items-center gap-2">
+                <TrackArtwork size={260} track={currentTrack} radius={12} />
+                <View className="mt-6 w-full items-center gap-2">
                   <Text
                     className="text-center font-jakarta text-2xl text-vault-text"
                     numberOfLines={2}
@@ -117,46 +125,40 @@ export function NowPlayingModal() {
               </View>
             </View>
 
-            <View
-              className="gap-6 px-6"
-              style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-            >
-              <ProgressBar
-                duration={duration}
-                large
-                position={position}
-                onSeek={seekTo}
-              />
-              <PlaybackButtons
-                hasNext={hasNext}
-                hasPrevious={hasPrevious}
-                isPlaying={isPlaying}
-                size="full"
-                onNext={skipToNext}
-                onPrevious={skipToPrevious}
-                onToggle={toggle}
-              />
-            </View>
+            {isQueueOpen ? (
+              <Animated.View
+                entering={FadeIn.duration(200)}
+                exiting={FadeOut.duration(150)}
+              >
+                <QueueSheet
+                  queue={queue}
+                  onClose={closeQueue}
+                  onSelect={(index) => {
+                    playQueueIndex(index);
+                    closeQueue();
+                  }}
+                />
+              </Animated.View>
+            ) : (
+              <View className="gap-6 px-6 pt-2">
+                <ProgressBar
+                  duration={duration}
+                  large
+                  position={position}
+                  onSeek={seekTo}
+                />
+                <PlaybackButtons
+                  hasNext={hasNext}
+                  hasPrevious={hasPrevious}
+                  isPlaying={isPlaying}
+                  size="full"
+                  onNext={skipToNext}
+                  onPrevious={skipToPrevious}
+                  onToggle={toggle}
+                />
+              </View>
+            )}
           </Animated.View>
-
-          {isQueueOpen ? (
-            <Animated.View
-              className="absolute inset-x-0 bottom-0"
-              entering={FadeIn.duration(200)}
-              exiting={FadeOut.duration(150)}
-              style={{ paddingBottom: insets.bottom }}
-            >
-              <QueueSheet
-                queue={queue}
-                onClose={closeQueue}
-                onSelect={(index) => {
-                  playQueueIndex(index);
-                  closeQueue();
-                }}
-              />
-            </Animated.View>
-          ) : null}
-        </View>
         </View>
       </GestureHandlerRootView>
     </Modal>
