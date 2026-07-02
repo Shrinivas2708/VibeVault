@@ -59,7 +59,7 @@ export default function LoginScreen() {
         >
           <View className="gap-8">
             <View>
-              <VaultHeading>Welcome back</VaultHeading>
+              <VaultHeading  >Welcome back</VaultHeading>
               <VaultSubheading>Sign in to your {APP_NAME} account.</VaultSubheading>
             </View>
 

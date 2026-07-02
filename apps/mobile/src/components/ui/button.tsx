@@ -80,9 +80,9 @@ interface VaultHeadingProps {
   children: ReactNode;
 }
 
-export function VaultHeading({ children }: VaultHeadingProps) {
+export function VaultHeading({ children }: VaultHeadingProps, className?: string) {
   return (
-    <Text className="mt-1 font-jakarta-bold text-3xl tracking-tight text-vault-text">
+    <Text className={`mt-1 font-jakarta-bold text-4xl tracking-tight text-vault-text font-bold ${className}`}>
       {children}
     </Text>
   );

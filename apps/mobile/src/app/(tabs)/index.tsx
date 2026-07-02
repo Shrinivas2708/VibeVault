@@ -1,4 +1,3 @@
-import { APP_NAME } from "@vibevault/config";
 import { useRouter } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { QuickTile } from "@/components/home/quick-tile";
@@ -9,6 +8,7 @@ import { VaultHeading, VaultSubheading } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Screen } from "@/components/ui/screen";
 import { useHistory } from "@/hooks/use-history";
+import { useScrollBottomInset } from "@/hooks/use-scroll-bottom-inset";
 import { useAuthStore } from "@/stores/auth-store";
 import { usePlayerStore } from "@/stores/player-store";
 
@@ -26,18 +26,16 @@ export default function HomeScreen() {
   const user = useAuthStore((state) => state.user);
   const { data: history } = useHistory(6);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const bottomInset = useScrollBottomInset();
 
   return (
     <Screen className="pt-2" padded={false}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="pb-8"
+        contentContainerStyle={{ paddingBottom: bottomInset }}
         showsVerticalScrollIndicator={false}
       >
         <View className="px-6 pt-2">
-          <Text className="font-inter text-sm uppercase tracking-[2px] text-vault-accent">
-            {APP_NAME}
-          </Text>
           <VaultHeading>{getGreeting()}</VaultHeading>
           <VaultSubheading>
             {user?.displayName
