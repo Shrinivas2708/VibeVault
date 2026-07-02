@@ -20,7 +20,7 @@
     "website:preview": "bun run --filter @onetune/website preview",
     "website:serve": "bun run website:build && npx serve website/dist",
     "website:sync-apk": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/sync-website-apk.ps1",
-    "postinstall": "patch-package && node scripts/patch-track-player-turbo.mjs"
+    "postinstall": "node scripts/patch-track-player-turbo.mjs"
   },
   "devDependencies": {
     "patch-package": "^8.0.1",
