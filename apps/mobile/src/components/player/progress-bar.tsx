@@ -48,10 +48,11 @@ export function ProgressBar({
 
   const beginDrag = useCallback(
     (x: number) => {
+      if (safeDuration <= 0) return;
       setIsDragging(true);
       setScrubPosition(positionFromX(x));
     },
-    [positionFromX],
+    [positionFromX, safeDuration],
   );
 
   const updateDrag = useCallback(
@@ -63,6 +64,10 @@ export function ProgressBar({
 
   const endDrag = useCallback(
     (x: number) => {
+      if (safeDuration <= 0) {
+        setIsDragging(false);
+        return;
+      }
       setIsDragging(false);
       const clamped = Math.max(0, Math.min(safeDuration, positionFromX(x)));
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -72,6 +77,8 @@ export function ProgressBar({
   );
 
   const pan = Gesture.Pan()
+    .minDistance(0)
+    .activeOffsetX([-4, 4])
     .onBegin((event) => {
       runOnJS(beginDrag)(event.x);
     })
@@ -86,17 +93,22 @@ export function ProgressBar({
     runOnJS(endDrag)(event.x);
   });
 
-  const gesture = Gesture.Race(pan, tap);
+  const gesture = Gesture.Exclusive(pan, tap);
+  const trackHeight = large ? 4 : compact ? 3 : 4;
+  const touchHeight = large ? 36 : compact ? 24 : 28;
+  const showThumb = large || compact || isDragging;
 
   return (
     <View className={compact ? "" : "gap-2"}>
       <GestureDetector gesture={gesture}>
         <View
-          className={`justify-center ${large ? "h-6" : compact ? "h-2" : "h-3"}`}
+          className="justify-center"
           onLayout={onLayout}
+          style={{ height: touchHeight }}
         >
           <View
-            className={`rounded-vault-pill bg-vault-surface-elevated ${large ? "h-1.5" : "h-1"}`}
+            className="rounded-vault-pill bg-vault-surface-elevated"
+            style={{ height: trackHeight }}
           >
             <View
               className="h-full rounded-vault-pill bg-vault-accent"
@@ -108,10 +120,12 @@ export function ProgressBar({
               }}
             />
           </View>
-          {large ? (
+          {showThumb ? (
             <View
-              className="absolute h-3.5 w-3.5 -translate-x-1.5 rounded-full border-2 border-vault-background bg-vault-accent"
-              style={{ left: `${ratio * 100}%` }}
+              className={`absolute rounded-full border-2 border-vault-background bg-vault-accent ${
+                large ? "h-4 w-4 -translate-x-2" : "h-3 w-3 -translate-x-1.5"
+              }`}
+              style={{ left: `${ratio * 100}%`, top: (touchHeight - (large ? 16 : 12)) / 2 }}
             />
           ) : null}
         </View>

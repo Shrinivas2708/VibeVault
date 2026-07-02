@@ -1,6 +1,6 @@
 import type { AuthResponse, User } from "@vibevault/types";
 import { create } from "zustand";
-import { authApi } from "@/lib/api-client";
+import { ApiClientError, authApi } from "@/lib/api-client";
 import { tokenStorage } from "@/lib/storage";
 
 interface AuthState {
@@ -56,13 +56,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const cachedUser = JSON.parse(userJson) as User;
       set({ user: cachedUser, isAuthenticated: true, isHydrated: true });
 
-      const user = await authApi.me();
-      tokenStorage.setSession(
-        tokenStorage.getAccessToken()!,
-        tokenStorage.getRefreshToken()!,
-        JSON.stringify(user),
-      );
-      set({ user });
+      try {
+        const user = await authApi.me();
+        tokenStorage.setSession(
+          tokenStorage.getAccessToken()!,
+          tokenStorage.getRefreshToken()!,
+          JSON.stringify(user),
+        );
+        set({ user });
+      } catch (error) {
+        // Stay signed in offline; only clear when the server rejects the session.
+        if (error instanceof ApiClientError && error.status === 401) {
+          tokenStorage.clear();
+          set({ user: null, isAuthenticated: false });
+        }
+      }
     } catch {
       tokenStorage.clear();
       set({ user: null, isAuthenticated: false, isHydrated: true });

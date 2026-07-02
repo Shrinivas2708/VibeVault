@@ -1,9 +1,17 @@
 const STORAGE_KEY = "vibevault-volume";
 
-export function loadWebVolume(): number {
-  if (typeof window === "undefined") return 1;
+function getVolumeStorage(): Storage | null {
+  if (typeof window === "undefined") return null;
+  const storage = window.sessionStorage;
+  if (!storage || typeof storage.getItem !== "function") return null;
+  return storage;
+}
 
-  const stored = window.sessionStorage.getItem(STORAGE_KEY);
+export function loadWebVolume(): number {
+  const storage = getVolumeStorage();
+  if (!storage) return 1;
+
+  const stored = storage.getItem(STORAGE_KEY);
   if (!stored) return 1;
 
   const value = Number.parseFloat(stored);
@@ -13,6 +21,7 @@ export function loadWebVolume(): number {
 }
 
 export function saveWebVolume(volume: number) {
-  if (typeof window === "undefined") return;
-  window.sessionStorage.setItem(STORAGE_KEY, String(volume));
+  const storage = getVolumeStorage();
+  if (!storage) return;
+  storage.setItem(STORAGE_KEY, String(volume));
 }

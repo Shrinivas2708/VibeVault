@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "expo start",
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "typecheck": "tsc --noEmit",
     "build": "expo export --platform ios --output-dir dist"
   },
@@ -59,7 +59,9 @@
   "expo": {
     "doctor": {
       "reactNativeDirectoryCheck": {
-        "exclude": ["react-native-track-player"]
+        "exclude": [
+          "react-native-track-player"
+        ]
       }
     }
   }

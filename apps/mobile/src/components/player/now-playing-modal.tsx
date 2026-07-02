@@ -2,8 +2,9 @@ import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { FavoriteButton } from "@/components/library/favorite-button";
 import { usePlaybackControls } from "@/hooks/use-playback-controls";
 import { formatArtists } from "@/lib/track-format";
@@ -16,6 +17,7 @@ import { QueueSheet } from "./queue-sheet";
 import { TrackArtwork } from "./track-artwork";
 
 export function NowPlayingModal() {
+  const insets = useSafeAreaInsets();
   const isOpen = usePlayerUiStore((state) => state.isNowPlayingOpen);
   const isQueueOpen = usePlayerUiStore((state) => state.isQueueOpen);
   const closeNowPlaying = usePlayerUiStore((state) => state.closeNowPlaying);
@@ -52,7 +54,8 @@ export function NowPlayingModal() {
       visible={isOpen}
       onRequestClose={closeNowPlaying}
     >
-      <View className="flex-1 bg-vault-background">
+      <GestureHandlerRootView style={styles.flex}>
+        <View className="flex-1 bg-vault-background">
         {artworkUri ? (
           <Image
             contentFit="cover"
@@ -112,7 +115,10 @@ export function NowPlayingModal() {
               </View>
             </View>
 
-            <View className="gap-6 px-6 pb-8">
+            <View
+              className="gap-6 px-6"
+              style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+            >
               <ProgressBar
                 duration={duration}
                 large
@@ -136,6 +142,7 @@ export function NowPlayingModal() {
               className="absolute inset-x-0 bottom-0"
               entering={FadeIn.duration(200)}
               exiting={FadeOut.duration(150)}
+              style={{ paddingBottom: insets.bottom }}
             >
               <QueueSheet
                 queue={queue}
@@ -148,7 +155,12 @@ export function NowPlayingModal() {
             </Animated.View>
           ) : null}
         </SafeAreaView>
-      </View>
+        </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+});

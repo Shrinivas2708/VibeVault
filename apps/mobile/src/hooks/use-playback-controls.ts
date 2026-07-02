@@ -38,6 +38,8 @@ export function usePlaybackControls() {
   }, []);
 
   const seekTo = useCallback((seconds: number) => {
+    const { duration } = usePlayerStore.getState();
+    usePlayerStore.getState().setProgress(seconds, duration);
     void playerEngine.seekTo(seconds);
   }, []);
 

@@ -13,9 +13,11 @@
     "lint": "turbo run lint",
     "docker:up": "docker compose up --build -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f"
+    "docker:logs": "docker compose logs -f",
+    "postinstall": "patch-package && node scripts/patch-track-player-turbo.mjs"
   },
   "devDependencies": {
+    "patch-package": "^8.0.1",
     "turbo": "^2.5.4",
     "typescript": "~5.9.2"
   },

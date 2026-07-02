@@ -2,8 +2,10 @@
   "scheme": "vibevault",
   "userInterfaceStyle": "dark",
   "orientation": "portrait",
+  "icon": "./assets/icon.png",
   "backgroundColor": "#121212",
   "splash": {
+    "image": "./assets/splash-icon.png",
     "backgroundColor": "#121212",
     "resizeMode": "contain"
   },
@@ -15,7 +17,12 @@
   },
   "android": {
     "package": "com.vibevault.app",
-    "permissions": []
+    "permissions": [
+      "FOREGROUND_SERVICE",
+      "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+      "WAKE_LOCK",
+      "POST_NOTIFICATIONS"
+    ]
   },
   "web": {
     "output": "static"
@@ -27,7 +34,9 @@
     [
       "expo-splash-screen",
       {
-        "backgroundColor": "#121212"
+        "backgroundColor": "#121212",
+        "image": "./assets/splash-icon.png",
+        "imageWidth": 200
       }
     ],
     [
@@ -50,10 +59,10 @@
       "projectId": "122c1b04-d383-4bc5-8eed-15c308ac28b6"
     }
   },
-  "runtimeVersion": {
-    "policy": "appVersion"
-  },
+  "runtimeVersion": "1.0.0",
   "updates": {
-    "url": "https://u.expo.dev/122c1b04-d383-4bc5-8eed-15c308ac28b6"
+    "url": "https://u.expo.dev/122c1b04-d383-4bc5-8eed-15c308ac28b6",
+    "checkAutomatically": "NEVER",
+    "fallbackToCacheTimeout": 0
   }
 }

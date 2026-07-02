@@ -1,5 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { queryClient } from "@/lib/query-client";
 
 interface AppProvidersProps {
@@ -8,6 +9,8 @@ interface AppProvidersProps {
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

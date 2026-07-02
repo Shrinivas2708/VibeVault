@@ -36,7 +36,9 @@ async function refreshAccessToken(): Promise<string | null> {
   });
 
   if (!response.ok) {
-    tokenStorage.clear();
+    if (response.status === 401) {
+      tokenStorage.clear();
+    }
     return null;
   }
 
